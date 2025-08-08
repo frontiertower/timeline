@@ -3,22 +3,8 @@ import { rooms } from './rooms';
 import { events as mockEvents } from './events';
 
 export async function getRooms(): Promise<Room> {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
-  if (!apiUrl) {
-    console.log('NEXT_PUBLIC_API_URL is not set, falling back to local data.');
-    return rooms;
-  }
-  try {
-    const response = await fetch(`${apiUrl}/api/rooms`);
-    if (!response.ok) {
-      console.error('Failed to fetch rooms from API, falling back to local data.');
-      return rooms;
-    }
-    return response.json();
-  } catch (error) {
-    console.error('Error fetching rooms, falling back to local data:', error);
-    return rooms;
-  }
+  // Room data is hardcoded and imported from rooms.ts
+  return Promise.resolve(rooms);
 }
 
 export async function getEvents(): Promise<Event[]> {
