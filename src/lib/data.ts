@@ -1,7 +1,7 @@
 import type { Room, Event } from './types';
 import { subDays, addDays, addHours, formatISO } from 'date-fns';
 
-const now = new Date();
+const now = new Date('2025-09-05T10:00:00.000Z');
 
 const rawRooms: Omit<Room, 'children'>[] = [
   { id: 'frontier-tower', name: 'Frontier Tower', type: 'building', parentId: null },
