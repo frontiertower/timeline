@@ -1,11 +1,9 @@
 import { NextResponse } from 'next/server';
 import type { Event } from '@/lib/types';
-import { events as mockEvents } from '@/lib/events';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  let realEvents: Event[] = [];
   try {
     const response = await fetch('https://api.berlinhouse.com/events/', {
       headers: {
@@ -18,29 +16,17 @@ export async function GET() {
       }
     });
 
-    if (response.ok) {
-      realEvents = await response.json();
-    } else {
-      console.error('Failed to fetch real events from external API, using only mock data.', { status: response.status });
-      // In case of an error from the external API, we can choose to return only mock data
-      // or an empty array depending on the desired behavior.
-      return NextResponse.json(mockEvents);
+    if (!response.ok) {
+        // Log the error and return an empty array, or some default/mock data
+        console.error('Failed to fetch events from external API:', { status: response.status });
+        return NextResponse.json([], { status: response.status });
     }
+
+    const events: Event[] = await response.json();
+    return NextResponse.json(events);
+
   } catch (error) {
-    console.error('Error fetching real events from external API:', error);
-    // If the fetch itself fails, fall back to mock data.
-    return NextResponse.json(mockEvents);
+    console.error('Error fetching events from external API:', error);
+    return NextResponse.json([], { status: 500 });
   }
-
-  // Merge real events with mock events, giving precedence to real ones if IDs conflict.
-  const allEvents = [...realEvents];
-  const realEventIds = new Set(realEvents.map(e => e.id));
-  
-  mockEvents.forEach(mockEvent => {
-    if (!realEventIds.has(mockEvent.id)) {
-      allEvents.push(mockEvent);
-    }
-  });
-
-  return NextResponse.json(allEvents);
 }

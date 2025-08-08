@@ -3,13 +3,13 @@ import { rooms } from './rooms';
 import { events as mockEvents } from './events';
 
 export async function getRooms(): Promise<Room> {
-  // This function now fetches from the new API route.
-  if (!process.env.NEXT_PUBLIC_API_URL) {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+  if (!apiUrl) {
     console.log('NEXT_PUBLIC_API_URL is not set, falling back to local data.');
     return rooms;
   }
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/rooms`);
+    const response = await fetch(`${apiUrl}/api/rooms`);
     if (!response.ok) {
       console.error('Failed to fetch rooms from API, falling back to local data.');
       return rooms;
@@ -22,27 +22,29 @@ export async function getRooms(): Promise<Room> {
 }
 
 export async function getEvents(): Promise<Event[]> {
-  // This function now fetches from the new API route.
-  if (!process.env.NEXT_PUBLIC_API_URL) {
-    console.log('NEXT_PUBLIC_API_URL is not set, falling back to local data.');
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+  if (!apiUrl) {
+    console.log('NEXT_PUBLIC_API_URL is not set, falling back to local mock data.');
     return mockEvents;
   }
 
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/events`);
+    // Fetch real events from our own API route
+    const response = await fetch(`${apiUrl}/api/events`);
     if (!response.ok) {
-        console.error('Failed to fetch events from API, falling back to mock data.', { status: response.status });
-        return mockEvents;
+      console.error('Failed to fetch events from API, falling back to mock data.', { status: response.status });
+      return mockEvents;
     }
-    const realEvents = await response.json();
+    const realEvents: Event[] = await response.json();
     
     // Merge real events with mock events, giving precedence to real ones if IDs conflict.
     const allEvents = [...realEvents];
     const realEventIds = new Set(realEvents.map(e => e.id));
+    
     mockEvents.forEach(mockEvent => {
-        if (!realEventIds.has(mockEvent.id)) {
+      if (!realEventIds.has(mockEvent.id)) {
         allEvents.push(mockEvent);
-        }
+      }
     });
 
     return allEvents;
