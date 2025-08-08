@@ -1,4 +1,6 @@
 
+'use client';
+
 import { getEvents, getRooms } from '@/lib/data';
 import type { Event, Room } from '@/lib/types';
 import { notFound } from 'next/navigation';
@@ -6,7 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowLeft, Calendar, Clock, MapPin } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
+import { useEffect, useState } from 'react';
 
 interface EventPageProps {
   params: {
@@ -29,24 +32,50 @@ const findRoom = (roomId: string, root: Room): Room | null => {
     return null;
 }
 
-export default async function EventPage({ params }: EventPageProps) {
-  const events = await getEvents();
-  const event = events.find((e: Event) => String(e.id) === params.id);
+export default function EventPage({ params }: EventPageProps) {
+  const [event, setEvent] = useState<Event | null>(null);
+  const [room, setRoom] = useState<Room | null>(null);
+  const [loading, setLoading] = useState(true);
   
-  if (!event) {
-    notFound();
-  }
-  
-  const rooms = await getRooms();
-  let room = findRoom(event.location, rooms);
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      const events = await getEvents();
+      const currentEvent = events.find((e: Event) => String(e.id) === params.id);
+      
+      if (!currentEvent) {
+        notFound();
+        return;
+      }
+      
+      const roomsData = await getRooms();
+      let eventRoom = findRoom(currentEvent.location, roomsData);
+      
+      if (!eventRoom) {
+        eventRoom = roomsData;
+      }
 
-  // If the room is not found, default to the main building
-  if (!room) {
-    room = rooms; // rooms is the root 'frontier-tower' object
+      setEvent(currentEvent);
+      setRoom(eventRoom);
+      setLoading(false);
+    }
+    fetchData();
+  }, [params.id]);
+
+  if (loading) {
+      return (
+        <div className="min-h-screen bg-muted/40 p-4 sm:p-8 flex items-center justify-center">
+            <p className="text-lg text-muted-foreground">Loading event...</p>
+        </div>
+      )
+  }
+
+  if (!event || !room) {
+    return notFound();
   }
   
-  const eventStart = new Date(event.startsAt);
-  const eventEnd = new Date(event.endsAt);
+  const eventStart = parseISO(event.startsAt);
+  const eventEnd = parseISO(event.endsAt);
 
   return (
     <div className="min-h-screen bg-muted/40 p-4 sm:p-8 flex items-center justify-center">
