@@ -26,6 +26,7 @@ export function RoomList({ rootRoom, flattenedRooms }: RoomListProps) {
               </div>
             )
         }
+//        return null;
         
         const isFloorWithVisibleRooms = room.type === 'floor' && room.children && room.children.length > 0;
 

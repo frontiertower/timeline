@@ -30,62 +30,6 @@ interface TimelineContainerProps {
   initialEvents: Event[];
 }
 
-
-const findRoom = (roomId: string, root: Room): Room | null => {
-    const queue: Room[] = [root];
-    while(queue.length > 0) {
-        const current = queue.shift();
-        if (current?.id === roomId) {
-            return current;
-        }
-        if (current?.children) {
-            queue.push(...current.children);
-        }
-    }
-    return null;
-}
-
-const getVisibleRoomsAndIds = (
-    allRooms: Room,
-    visibleEventRoomIds: Set<string>
-): [Room, Set<string>] => {
-    const visibleIds = new Set<string>();
-
-    const addParents = (roomId: string) => {
-        let current = findRoom(roomId, allRooms);
-        while (current) {
-            visibleIds.add(current.id);
-            current = current.parentId ? findRoom(current.parentId, allRooms) : null;
-        }
-    };
-    
-    visibleEventRoomIds.forEach(id => addParents(id));
-
-    const filterTree = (node: Room): Room | null => {
-        if (!visibleIds.has(node.id)) {
-            return null;
-        }
-
-        const filteredChildren = node.children
-            ?.map(child => filterTree(child))
-            .filter((child): child is Room => child !== null);
-        
-        // Hide floors that have no visible rooms under them
-        if (node.type === 'floor' && (!filteredChildren || filteredChildren.length === 0)) {
-            return null;
-        }
-
-        return {
-            ...node,
-            children: filteredChildren,
-        };
-    };
-    
-    const visibleTree = filterTree(JSON.parse(JSON.stringify(allRooms)));
-
-    return [visibleTree || allRooms, visibleIds];
-};
-
 function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineContainerProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -150,23 +94,18 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
   }, [initialEvents, dateRange]);
 
 
-  const [visibleRooms, visibleRoomIds] = useMemo(() => {
-    const visibleEventRoomIds = new Set(visibleEvents.map(e => e.location));
-    const [tree, ids] = getVisibleRoomsAndIds(initialRooms, visibleEventRoomIds);
-    return [tree, ids];
-  }, [initialRooms, visibleEvents]);
-
   const flattenedVisibleRooms = useMemo(() => {
     const rooms: Room[] = [];
     const traverse = (node: Room) => {
       rooms.push(node);
       if (node.children) {
+        // Ensure children are sorted correctly if needed, though structure implies order
         node.children.forEach(child => traverse(child));
       }
     };
-    if (visibleRooms) traverse(visibleRooms);
+    if (initialRooms) traverse(initialRooms);
     return rooms;
-  }, [visibleRooms]);
+  }, [initialRooms]);
 
   const eventRooms = useMemo(() => {
       return flattenedVisibleRooms.filter(r => r.type === 'room');
@@ -188,7 +127,7 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
         <CardContent className="flex-grow p-0 flex">
             {eventRooms.length > 0 ? (
                 <TimelineView
-                    rooms={visibleRooms}
+                    rooms={initialRooms}
                     events={visibleEvents}
                     dateRange={dateRange}
                     zoom={zoom}
@@ -197,7 +136,7 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
                 />
             ) : (
                 <div className="flex-1 flex items-center justify-center text-muted-foreground">
-                    <p>No events in the selected time range.</p>
+                    <p>No rooms configured.</p>
                 </div>
             )}
         </CardContent>
