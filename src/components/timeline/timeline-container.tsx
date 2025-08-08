@@ -90,6 +90,20 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
     }[zoom];
     setCurrentDate(newDate);
   };
+
+  const allRoomIds = useMemo(() => {
+    const ids = new Set<string>();
+    const flatten = (node: Room) => {
+      ids.add(node.id);
+      if (node.children) {
+        node.children.forEach(flatten);
+      }
+    };
+    if (initialRooms) {
+      flatten(initialRooms);
+    }
+    return ids;
+  }, [initialRooms]);
   
   const visibleEvents = useMemo(() => {
     return initialEvents.filter(event => {
@@ -97,11 +111,14 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
       const eventEnd = parseISO(event.endsAt);
       const eventInterval = { start: eventStart, end: eventEnd };
       return isWithinInterval(eventStart, dateRange) || isWithinInterval(dateRange.start, eventInterval);
-    }).map(event => ({
-        ...event,
-        location: event.location || 'frontier-tower',
-    }));
-  }, [initialEvents, dateRange]);
+    }).map(event => {
+        const locationIsValid = event.location && allRoomIds.has(event.location);
+        return {
+            ...event,
+            location: locationIsValid ? event.location : 'frontier-tower',
+        }
+    });
+  }, [initialEvents, dateRange, allRoomIds]);
   
   const flattenedVisibleRooms = useMemo(() => {
     const roomIdsWithEvents = new Set(visibleEvents.map(event => event.location));
@@ -131,10 +148,11 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
     
     const visibleTree: Room[] = [];
     if (initialRooms) {
-      // Always show the building itself, especially for events with no location
       if (visibleEvents.length === 0 && !roomIdsWithEvents.has('frontier-tower')) {
         const buildingOnly: Room = {...initialRooms, children: []};
-        visibleTree.push(buildingOnly);
+        if (roomIdsWithEvents.has('frontier-tower')) {
+          visibleTree.push(buildingOnly);
+        }
         return visibleTree;
       }
       
@@ -165,14 +183,14 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
   }
 
   return (
-    <div className="p-4">
+    <div className="flex flex-col h-screen">
       <TimelineHeader
         zoom={zoom}
         onZoomChange={handleZoomChange}
         dateRange={dateRange}
         onNavigate={handleNavigate}
       />
-        <div className="mt-4 rounded-lg shadow-sm">
+        <div className="flex-grow mt-4 rounded-lg shadow-sm overflow-hidden">
             {flattenedVisibleRooms.length > 0 ? (
                 <TimelineView
                     events={visibleEvents}
