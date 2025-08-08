@@ -1,6 +1,7 @@
 import { TimelineContainer } from '@/components/timeline/timeline-container';
-import { getEvents, getRooms } from '@/lib/data';
 import { Suspense } from 'react';
+import type { Room, Event } from '@/lib/types';
+import { getRooms, getEvents } from '@/lib/data';
 
 function TimelineLoading() {
     return (
@@ -10,11 +11,17 @@ function TimelineLoading() {
     )
 }
 
+async function fetchTimelineData(): Promise<{ roomsTree: Room, events: Event[] }> {
+    const roomsTree = await getRooms();
+    const events = await getEvents();
+    return { roomsTree, events };
+}
+
+
 export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
-  const roomsTree = await getRooms();
-  const events = await getEvents();
+  const { roomsTree, events } = await fetchTimelineData();
 
   return (
     <main className="h-full bg-background">
