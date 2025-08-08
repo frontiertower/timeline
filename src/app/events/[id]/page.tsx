@@ -1,0 +1,78 @@
+import { getEvents, getRooms } from '@/lib/data';
+import type { Event, Room } from '@/lib/types';
+import { notFound } from 'next/navigation';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { ArrowLeft, Calendar, Clock, MapPin } from 'lucide-react';
+import { format } from 'date-fns';
+
+interface EventPageProps {
+  params: {
+    id: string;
+  };
+}
+
+const findRoomName = (roomId: string, root: Room): string | null => {
+    const queue: Room[] = [root];
+    while(queue.length > 0) {
+        const current = queue.shift();
+        if (current?.id === roomId) {
+            return current.name;
+        }
+        if (current?.children) {
+            queue.push(...current.children);
+        }
+    }
+    return null;
+}
+
+export default async function EventPage({ params }: EventPageProps) {
+  const events = await getEvents();
+  const event = events.find((e: Event) => e.id === params.id);
+  const rooms = await getRooms();
+
+  if (!event) {
+    notFound();
+  }
+  
+  const roomName = findRoomName(event.location.roomId, rooms);
+  
+  const eventStart = new Date(event.startsAt);
+  const eventEnd = new Date(event.endsAt);
+
+  return (
+    <div className="min-h-screen bg-muted/40 p-4 sm:p-8 flex items-center justify-center">
+        <div className="w-full max-w-2xl">
+            <Button asChild variant="ghost" className="mb-4">
+                <Link href="/">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back to Timeline
+                </Link>
+            </Button>
+            <Card className="shadow-2xl">
+                <CardHeader>
+                    <CardTitle className="text-4xl font-headline">{event.title}</CardTitle>
+                    <CardDescription className="text-base pt-4 flex flex-col sm:flex-row sm:items-center gap-x-6 gap-y-2">
+                        <span className="flex items-center gap-2">
+                            <MapPin className="h-4 w-4 text-accent"/>
+                            {roomName || 'Unknown Location'}
+                        </span>
+                         <span className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-accent"/>
+                            {format(eventStart, 'EEEE, MMMM d, yyyy')}
+                        </span>
+                         <span className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-accent"/>
+                            {format(eventStart, 'p')} - {format(eventEnd, 'p')}
+                        </span>
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-lg leading-relaxed">{event.description}</p>
+                </CardContent>
+            </Card>
+        </div>
+    </div>
+  );
+}
