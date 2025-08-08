@@ -89,7 +89,7 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
     if (gridColumnStart === 0) return null;
 
     return {
-      gridRow: roomIndex + 2, // +1 for grid index, +1 for header row
+      gridRow: roomIndex + 1, // +1 for grid index
       gridColumn: `${gridColumnStart} / ${gridColumnEnd}`,
     };
   };
@@ -120,13 +120,13 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
           <div className="grid" style={{ gridTemplateColumns: getGridTemplateColumns(), gridTemplateRows: `repeat(${flattenedRooms.length}, 3rem)` }}>
               {flattenedRooms.map((location, i) => (
                   timeSlots.map((_, j) => (
-                      <div key={`${location.id}-${j}`} className="h-12"></div>
+                    null
                   ))
               ))}
               {events.map(event => {
                   const position = getEventGridPosition(event);
                   return position ? (
-                      <div key={event.id} style={{ gridRow: position.gridRow, gridColumn: position.gridColumn }} className="p-1 h-12 relative -top-12">
+                      <div key={event.id} style={{ gridRow: position.gridRow, gridColumn: position.gridColumn }} className="p-1 h-12 relative">
                           <EventItem event={event} />
                       </div>
                   ) : null;

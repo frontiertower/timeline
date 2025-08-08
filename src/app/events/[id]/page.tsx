@@ -74,7 +74,11 @@ export default async function EventPage({ params }: EventPageProps) {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-lg leading-relaxed">{event.description}</p>
+                    {
+                        event.description.split('\n').map((line, index) => (
+                            <p key={index} className="text-lg leading-relaxed">{line}</p>
+                        ))
+                    }
                 </CardContent>
             </Card>
         </div>
