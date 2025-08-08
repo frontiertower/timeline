@@ -5,18 +5,12 @@ import { toZonedTime } from 'date-fns-tz';
 
 const timeZone = 'America/Los_Angeles';
 
-// Get the current date and time in the target timezone.
+// Get the current date in the target timezone.
 const nowInPST = toZonedTime(new Date(), timeZone);
 
 // Get the start of today in the target timezone.
-const year = nowInPST.getFullYear();
-const month = nowInPST.getMonth();
-const day = nowInPST.getDate();
-
-// THIS IS THE CRITICAL FIX:
-// Create a Date object that represents the start of the day in the specified timezone.
-// By creating the date object from a string that includes the timezone, we avoid ambiguity.
-const startOfTodayInPST = toZonedTime(new Date(year, month, day), timeZone);
+// This is the key part: create a date that represents midnight *in that timezone*.
+const startOfTodayInPST = toZonedTime(`${nowInPST.getFullYear()}-${String(nowInPST.getMonth() + 1).padStart(2, '0')}-${String(nowInPST.getDate()).padStart(2, '0')}T00:00:00`, timeZone);
 
 
 const createEvent = (
