@@ -151,15 +151,6 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
 
           {/* Grid and Events */}
           <div className="grid" style={{ gridTemplateColumns: getGridTemplateColumns(), gridTemplateRows: `repeat(${flattenedRooms.length}, 3rem)` }}>
-              {/* This is just to create the grid structure, no content needed */}
-              {flattenedRooms.map((_, roomIndex) => (
-                timeSlots.map((__, timeIndex) => {
-                  const columns = zoom === 'day' ? 48 : timeSlots.length;
-                  return Array.from({length: zoom === 'day' ? 2 : 1}).map((___, subIndex) => (
-                     <div key={`${roomIndex}-${timeIndex}-${subIndex}`} className="h-12"></div>
-                  ))
-                })
-              ))}
 
               {events.map(event => {
                   const position = getEventGridPosition(event);
