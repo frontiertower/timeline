@@ -59,8 +59,8 @@ export const rooms: Room = {
         parentId: 'frontier-tower',
         children: [
           { id: 'floor_16', name: 'Floor 16', type: 'room', parentId: 'floor-16' },
-          { id: 'f3r0', name: 'Lounge', type: 'room', parentId: 'floor-16' },
-          { id: 'f3r2', name: 'Observatory Deck', type: 'room', parentId: 'floor-16' },
+          { id: 'f16r0', name: 'Lounge', type: 'room', parentId: 'floor-16' },
+          { id: 'f16r2', name: 'Observatory Deck', type: 'room', parentId: 'floor-16' },
         ]
     }
   ],

@@ -36,6 +36,12 @@ export async function getEvents(): Promise<Event[]> {
       return mockEvents;
     }
     const realEvents: Event[] = await response.json();
+
+    if (!Array.isArray(realEvents)) {
+      console.error('API response for events is not an array, falling back to mock data.', { response: realEvents });
+      return mockEvents;
+    }
+
     
     // Merge real events with mock events, giving precedence to real ones if IDs conflict.
     const allEvents = [...realEvents];

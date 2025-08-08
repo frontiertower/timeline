@@ -180,8 +180,9 @@ export function TimelineContainer({ initialRooms, initialEvents }: TimelineConta
     });
   }, [initialEvents, dateRange]);
 
+
   const [visibleRooms, visibleRoomIds] = useMemo(() => {
-    const visibleEventRoomIds = new Set(visibleEvents.map(e => e.location.roomId));
+    const visibleEventRoomIds = new Set(visibleEvents.map(e => e.location));
     const [tree, ids] = getVisibleRoomsAndIds(initialRooms, visibleEventRoomIds);
     return [tree, ids];
   }, [initialRooms, visibleEvents]);

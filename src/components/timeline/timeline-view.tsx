@@ -55,7 +55,7 @@ export function TimelineView({ rooms, events, dateRange, zoom, flattenedRooms }:
   const timeSlots = getTimeSlots();
 
   const getEventGridPosition = (event: Event) => {
-    const roomIndex = flattenedRooms.findIndex(r => r.id === event.location.roomId);
+    const roomIndex = flattenedRooms.findIndex(r => r.id === event.location);
     if (roomIndex === -1) return null;
 
     const start = new Date(event.startsAt);

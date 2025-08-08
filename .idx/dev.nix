@@ -5,6 +5,7 @@
   channel = "stable-24.11"; # or "unstable"
   # Use https://search.nixos.org/packages to find packages
   packages = [
+    pkgs.btop
     pkgs.nodejs_20
     pkgs.zulu
   ];
@@ -32,7 +33,7 @@
     };
     # Enable previews and customize configuration
     previews = {
-      enable = true;
+      enable = false;
       previews = {
         web = {
           command = ["npm" "run" "dev" "--" "--port" "$PORT" "--hostname" "0.0.0.0"];

@@ -8,11 +8,9 @@ export interface Room {
 
 export interface Event {
   id: string;
-  title: string;
+  name: string;
   description: string;
   startsAt: string; // ISO 8601 string
   endsAt: string; // ISO 8601 string
-  location: {
-    roomId: string;
-  };
+  location: string;
 }

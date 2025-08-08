@@ -22,8 +22,8 @@ export async function GET() {
         return NextResponse.json([], { status: response.status });
     }
 
-    const events: Event[] = await response.json();
-    return NextResponse.json(events);
+    const json = await response.json();
+    return NextResponse.json(json.results);
 
   } catch (error) {
     console.error('Error fetching events from external API:', error);

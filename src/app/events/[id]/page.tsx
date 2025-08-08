@@ -36,7 +36,7 @@ export default async function EventPage({ params }: EventPageProps) {
   }
   
   const rooms = await getRooms();
-  const room = findRoom(event.location.roomId, rooms);
+  const room = findRoom(event.location, rooms);
 
   if (!room) {
     // If the room for the event is not found, treat it as a not-found page
@@ -57,7 +57,7 @@ export default async function EventPage({ params }: EventPageProps) {
             </Button>
             <Card className="shadow-2xl">
                 <CardHeader>
-                    <CardTitle className="text-4xl font-headline">{event.title}</CardTitle>
+                    <CardTitle className="text-4xl font-headline">{event.name}</CardTitle>
                     <CardDescription className="text-base pt-4 flex flex-col sm:flex-row sm:items-center gap-x-6 gap-y-2">
                         <span className="flex items-center gap-2">
                             <MapPin className="h-4 w-4 text-accent"/>
