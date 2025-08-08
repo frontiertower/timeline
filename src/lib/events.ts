@@ -1,12 +1,13 @@
 
 import type { Event } from './types';
-import { set } from 'date-fns';
+import { set, startOfDay } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 
 const timeZone = 'America/Los_Angeles';
 
 // Get the current date object, but interpreted as being in the target timezone.
 const nowInPST = toZonedTime(new Date(), timeZone);
+const startOfTodayInPST = startOfDay(nowInPST);
 
 const createEvent = (
   id: string,
@@ -16,14 +17,14 @@ const createEvent = (
   endHour: number,
   location: string
 ): Event => {
-  const startsAtDate = set(nowInPST, { 
-    hours: Math.floor(startHour), 
+  const startsAtDate = set(startOfTodayInPST, {
+    hours: Math.floor(startHour),
     minutes: (startHour % 1) * 60,
     seconds: 0,
-    milliseconds: 0 
+    milliseconds: 0
   });
 
-  const endsAtDate = set(nowInPST, {
+  const endsAtDate = set(startOfTodayInPST, {
     hours: Math.floor(endHour),
     minutes: (endHour % 1) * 60,
     seconds: 0,
