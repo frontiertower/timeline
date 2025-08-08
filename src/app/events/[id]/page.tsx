@@ -1,3 +1,4 @@
+
 import { getEvents, getRooms } from '@/lib/data';
 import type { Event, Room } from '@/lib/types';
 import { notFound } from 'next/navigation';
@@ -14,6 +15,7 @@ interface EventPageProps {
 }
 
 const findRoom = (roomId: string, root: Room): Room | null => {
+    if (!roomId) return null;
     const queue: Room[] = [root];
     while(queue.length > 0) {
         const current = queue.shift();
@@ -36,11 +38,11 @@ export default async function EventPage({ params }: EventPageProps) {
   }
   
   const rooms = await getRooms();
-  const room = findRoom(event.location, rooms);
+  let room = findRoom(event.location, rooms);
 
+  // If the room is not found, default to the main building
   if (!room) {
-    // If the room for the event is not found, treat it as a not-found page
-    notFound();
+    room = rooms; // rooms is the root 'frontier-tower' object
   }
   
   const eventStart = new Date(event.startsAt);
