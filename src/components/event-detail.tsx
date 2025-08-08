@@ -1,7 +1,5 @@
-
 'use client';
 
-import { getEvents, getRooms } from '@/lib/data';
 import type { Event, Room } from '@/lib/types';
 import { notFound } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -30,6 +28,24 @@ const findRoom = (roomId: string, root: Room): Room | null => {
     return null;
 }
 
+// This function needs to fetch from the API route, not call getEvents directly
+const fetchEventsFromApi = async (): Promise<Event[]> => {
+    const response = await fetch('/api/events');
+    if (!response.ok) {
+        throw new Error('Failed to fetch events');
+    }
+    return response.json();
+}
+
+const fetchRoomsFromApi = async (): Promise<Room> => {
+    const response = await fetch('/api/rooms');
+     if (!response.ok) {
+        throw new Error('Failed to fetch rooms');
+    }
+    return response.json();
+}
+
+
 export function EventDetail({ id }: EventDetailProps) {
   const [event, setEvent] = useState<Event | null>(null);
   const [room, setRoom] = useState<Room | null>(null);
@@ -38,24 +54,31 @@ export function EventDetail({ id }: EventDetailProps) {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      const events = await getEvents();
-      const currentEvent = events.find((e: Event) => String(e.id) === id);
-      
-      if (!currentEvent) {
-        notFound();
-        return;
-      }
-      
-      const roomsData = await getRooms();
-      let eventRoom = findRoom(currentEvent.location, roomsData);
-      
-      if (!eventRoom) {
-        eventRoom = roomsData;
-      }
+      try {
+        const events = await fetchEventsFromApi();
+        const currentEvent = events.find((e: Event) => String(e.id) === id);
+        
+        if (!currentEvent) {
+          notFound();
+          return;
+        }
+        
+        const roomsData = await fetchRoomsFromApi();
+        let eventRoom = findRoom(currentEvent.location, roomsData);
+        
+        if (!eventRoom) {
+          // Default to the main building if a specific room isn't found
+          eventRoom = roomsData;
+        }
 
-      setEvent(currentEvent);
-      setRoom(eventRoom);
-      setLoading(false);
+        setEvent(currentEvent);
+        setRoom(eventRoom);
+      } catch (error) {
+        console.error("Failed to fetch event details", error);
+        // Optionally, handle error state in the UI
+      } finally {
+        setLoading(false);
+      }
     }
     fetchData();
   }, [id]);
