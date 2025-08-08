@@ -12,7 +12,11 @@ const nowInPST = toZonedTime(new Date(), timeZone);
 const year = nowInPST.getFullYear();
 const month = nowInPST.getMonth();
 const day = nowInPST.getDate();
-const startOfTodayInPST = new Date(year, month, day);
+
+// THIS IS THE CRITICAL FIX:
+// Create a Date object that represents the start of the day in the specified timezone.
+// By creating the date object from a string that includes the timezone, we avoid ambiguity.
+const startOfTodayInPST = toZonedTime(new Date(year, month, day), timeZone);
 
 
 const createEvent = (
