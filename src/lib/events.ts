@@ -1,8 +1,19 @@
-import type { Event } from './types';
-import { addHours, set, startOfDay } from 'date-fns';
-import { toZonedTime } from 'date-fns-tz';
 
-const today = new Date();
+import type { Event } from './types';
+import { addHours, set } from 'date-fns';
+import { toZonedTime, formatInTimeZone } from 'date-fns-tz';
+
+const timeZone = 'America/Los_Angeles';
+
+// Get the current date parts in the target timezone
+const nowInPST = new Date();
+const year = nowInPST.getFullYear();
+const month = nowInPST.getMonth();
+const day = nowInPST.getDate();
+
+// Construct a date that represents the start of today in the target timezone
+const startOfTodayInPST = toZonedTime(new Date(year, month, day), timeZone);
+
 
 const createEvent = (
   id: string,
@@ -12,15 +23,12 @@ const createEvent = (
   endHour: number,
   location: string
 ): Event => {
-  const baseTime = startOfDay(today);
   return {
     id,
     name,
     description: `[MOCK] ${description}`,
-    // Assuming the input startHour and endHour are in UTC, convert to PST.
-    // Pacific Standard Time (PST) is UTC-8
-    startsAt: toZonedTime(addHours(baseTime, startHour), 'America/Los_Angeles').toISOString(),
-    endsAt: toZonedTime(addHours(baseTime, endHour), 'America/Los_Angeles').toISOString(),
+    startsAt: addHours(startOfTodayInPST, startHour).toISOString(),
+    endsAt: addHours(startOfTodayInPST, endHour).toISOString(),
     location,
     color: 'hsl(240 4.8% 95.9%)', // Muted gray
   };
