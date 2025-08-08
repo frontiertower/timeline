@@ -7,45 +7,29 @@ export async function getRooms(): Promise<Room> {
   return Promise.resolve(rooms);
 }
 
+const getAppUrl = () => {
+    return process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9003';
+}
+
 export async function getEvents(): Promise<Event[]> {
   try {
-    let allEvents: Event[] = [];
-    let nextUrl: string | null = 'https://api.berlinhouse.com/events/';
-    let pageCount = 0;
-    const maxPages = 10;
-
-    while (nextUrl && pageCount < maxPages) {
-      pageCount++;
-      const response = await fetch(nextUrl, {
-        headers: {
-          'X-API-Key': `${process.env.FRONTIER_TOWER_API_KEY}`,
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-        next: {
-          revalidate: 3600 // Revalidate every hour
-        }
-      });
-
-      if (!response.ok) {
-          console.error('Failed to fetch events from external API:', { status: response.status, url: nextUrl });
-          break; 
+    const appUrl = getAppUrl();
+    // Fetch from our own API proxy
+    const response = await fetch(`${appUrl}/api/events`, {
+      next: {
+        revalidate: 3600 // Revalidate every hour
       }
+    });
 
-      const json = await response.json();
-      if (json.results && Array.isArray(json.results)) {
-        const coloredEvents = json.results.map((event: any) => ({
-            ...event,
-            color: 'hsl(259 80% 70%)', // primary purple
-        }));
-        allEvents = allEvents.concat(coloredEvents);
-      }
-      
-      nextUrl = json.next;
+    if (!response.ok) {
+      console.error('Failed to fetch events from internal API:', { status: response.status });
+      throw new Error('Failed to fetch events');
     }
-    
+
+    const events: Event[] = await response.json();
+
     // Combine real events with mock events
-    return [...allEvents, ...mockEvents];
+    return [...events, ...mockEvents];
 
   } catch (error) {
     console.error('Error fetching events, falling back to mock data:', error);
