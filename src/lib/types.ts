@@ -13,4 +13,5 @@ export interface Event {
   startsAt: string; // ISO 8601 string
   endsAt: string; // ISO 8601 string
   location: string;
+  color?: string;
 }

@@ -31,7 +31,11 @@ export async function GET() {
 
       const json = await response.json();
       if (json.results && Array.isArray(json.results)) {
-        allEvents = allEvents.concat(json.results);
+        const coloredEvents = json.results.map((event: any) => ({
+            ...event,
+            color: 'hsl(259 80% 70%)', // primary purple
+        }));
+        allEvents = allEvents.concat(coloredEvents);
       }
       
       nextUrl = json.next;

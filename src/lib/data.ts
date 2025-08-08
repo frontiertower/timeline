@@ -8,6 +8,20 @@ export async function getRooms(): Promise<Room> {
 }
 
 export async function getEvents(): Promise<Event[]> {
-  // Events are hardcoded and imported from events.ts
-  return Promise.resolve(mockEvents);
+  try {
+    // In a real app, you'd fetch from your own API route which protects the key
+    const response = await fetch('/api/events'); 
+    if (!response.ok) {
+        console.error('Failed to fetch events from API, falling back to mock data.');
+        return mockEvents;
+    }
+    const realEvents = await response.json();
+    
+    // Combine real events with mock events
+    return [...realEvents, ...mockEvents];
+
+  } catch (error) {
+    console.error('Error fetching events, falling back to mock data:', error);
+    return mockEvents;
+  }
 }

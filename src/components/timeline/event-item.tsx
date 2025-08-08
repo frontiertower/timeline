@@ -16,12 +16,19 @@ interface EventItemProps {
 }
 
 export function EventItem({ event }: EventItemProps) {
+  const cardStyle = {
+    backgroundColor: event.color,
+  };
+
   return (
     <TooltipProvider delayDuration={100}>
       <Tooltip>
         <TooltipTrigger asChild>
           <Link href={`/events/${event.id}`} className="block h-full">
-            <Card className="h-full w-full bg-primary/80 text-primary-foreground hover:bg-primary transition-colors duration-200 shadow-md overflow-hidden">
+            <Card 
+              className="h-full w-full text-primary-foreground hover:opacity-80 transition-opacity duration-200 shadow-md overflow-hidden"
+              style={cardStyle}
+            >
               <CardHeader className="p-2">
                 <CardTitle className="text-xs font-bold truncate">
                   {event.name}

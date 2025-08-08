@@ -37,7 +37,7 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
   const searchParams = useSearchParams();
 
   const [zoom, setZoom] = useState<ZoomLevel>('day');
-  const [currentDate, setCurrentDate] = useState<Date>(new Date('2025-09-05T10:00:00.000Z'));
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -49,9 +49,11 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
         setZoom(zoomParam);
     }
     if (fromParam) {
-        setCurrentDate(parse(fromParam, 'yyyy-MM-dd', new Date()));
+        // Use a regex to handle both full ISO strings and 'yyyy-MM-dd' formats
+        const parsedDate = parse(fromParam, 'yyyy-MM-dd', new Date());
+        setCurrentDate(parsedDate);
     } else {
-        setCurrentDate(new Date('2025-09-05T10:00:00.000Z'));
+        setCurrentDate(new Date());
     }
   }, [searchParams]);
 
@@ -116,21 +118,19 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
             initialRooms.children.forEach(floor => {
                 const roomsInFloor = floor.children ? floor.children.filter(room => roomIdsWithEvents.has(room.id)) : [];
                 if(roomsInFloor.length > 0) {
-                    buildingNode.children.push({...floor, children: roomsInFloor});
+                    const floorWithVisibleRooms = {...floor, children: roomsInFloor};
+                    if (!buildingNode.children.some(f => f.id === floor.id)) {
+                        buildingNode.children.push(floorWithVisibleRooms);
+                    }
                 }
             });
-            if(buildingNode.children.length > 0) {
+
+            if (buildingNode.children.length > 0) {
               flatten(buildingNode, visibleTree);
             } else if (visibleEvents.length === 0) {
-              // If no events, show all rooms
-              flatten(initialRooms, visibleTree);
-              return visibleTree;
-            } else {
-              // Case where events might be on locations not in the tree? Unlikely but safe.
-              // Show building only.
-              visibleTree.push({...initialRooms, children: []});
+               // When no events are visible, we show the building only.
+               visibleTree.push({...initialRooms, children: []});
             }
-
         } else if (roomIdsWithEvents.has(initialRooms.id)) {
             visibleTree.push(initialRooms);
         }
