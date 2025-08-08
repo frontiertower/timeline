@@ -24,7 +24,7 @@ export default async function HomePage() {
   const { roomsTree, events } = await fetchTimelineData();
 
   return (
-    <main className="h-full bg-background">
+    <main className="bg-background">
       <Suspense fallback={<TimelineLoading />}>
         <TimelineContainer initialRooms={roomsTree} initialEvents={events} />
       </Suspense>

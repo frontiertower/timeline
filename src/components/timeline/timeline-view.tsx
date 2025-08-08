@@ -17,17 +17,15 @@ import { cn } from '@/lib/utils';
 type ZoomLevel = 'day' | 'week' | 'month';
 
 interface TimelineViewProps {
-  rooms: Room;
   events: Event[];
   dateRange: { start: Date; end: Date };
   zoom: ZoomLevel;
   flattenedRooms: Room[];
-  eventRooms: Room[];
   onZoomChange: (zoom: ZoomLevel) => void;
   onDateChange: (date: Date) => void;
 }
 
-export function TimelineView({ rooms, events, dateRange, zoom, flattenedRooms, eventRooms, onZoomChange, onDateChange }: TimelineViewProps) {
+export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomChange, onDateChange }: TimelineViewProps) {
   
   const getGridTemplateColumns = () => {
     switch (zoom) {
@@ -91,7 +89,7 @@ export function TimelineView({ rooms, events, dateRange, zoom, flattenedRooms, e
     if (gridColumnStart === 0) return null;
 
     return {
-      gridRow: roomIndex + 1,
+      gridRow: roomIndex + 2, // +1 for grid index, +1 for header row
       gridColumn: `${gridColumnStart} / ${gridColumnEnd}`,
     };
   };
@@ -104,45 +102,39 @@ export function TimelineView({ rooms, events, dateRange, zoom, flattenedRooms, e
   }
 
   return (
-    <div className="flex flex-1 min-h-0">
-      <RoomList rootRoom={rooms} flattenedRooms={flattenedRooms} />
-      <ScrollArea className="flex-1 whitespace-nowrap">
-        <div className="relative h-full">
-          <div className="sticky top-0 z-10 bg-card">
-            <div className="grid" style={{ gridTemplateColumns: getGridTemplateColumns() }}>
+    <ScrollArea className="w-full h-[80vh] rounded-b-lg">
+      <div className="flex">
+        <RoomList flattenedRooms={flattenedRooms} />
+        <div className="flex-1 relative">
+          {/* Header */}
+          <div className="grid sticky top-0 z-10 bg-card" style={{ gridTemplateColumns: getGridTemplateColumns() }}>
               {timeSlots.map(({ label, date }) => (
-                <div key={label} className={cn("flex-shrink-0 text-center p-2 text-sm font-medium text-muted-foreground h-12 flex items-center justify-center", (zoom === 'week' || zoom === 'month') && "cursor-pointer hover:bg-muted")}
+                <div key={label} className={cn("flex-shrink-0 text-center p-2 text-sm font-medium text-muted-foreground h-12 flex items-center justify-center border-b", (zoom === 'week' || zoom === 'month') && "cursor-pointer hover:bg-muted")}
                  onClick={() => handleTimeSlotClick(date)}
                 >
                   {label}
                 </div>
               ))}
-            </div>
           </div>
-          <div className="grid h-full" style={{ gridTemplateColumns: getGridTemplateColumns(), gridTemplateRows: `repeat(${flattenedRooms.length}, 3rem)` }}>
-            {/* Grid Rows */}
-            {flattenedRooms.map((location, i) =>
-              {
-                return (
-                    timeSlots.map((_, j) => (
-                        <div key={`${location.id}-${j}`} className="h-12"></div>
-                    ))
-                )
-              }
-            )}
-            {/* Events */}
-            {events.map(event => {
-              const position = getEventGridPosition(event);
-              return position ? (
-                <div key={event.id} style={{ gridRow: position.gridRow, gridColumn: position.gridColumn }} className="p-1 h-12">
-                  <EventItem event={event} />
-                </div>
-              ) : null;
-            })}
+          {/* Grid and Events */}
+          <div className="grid" style={{ gridTemplateColumns: getGridTemplateColumns(), gridTemplateRows: `repeat(${flattenedRooms.length}, 3rem)` }}>
+              {flattenedRooms.map((location, i) => (
+                  timeSlots.map((_, j) => (
+                      <div key={`${location.id}-${j}`} className="h-12 border-b"></div>
+                  ))
+              ))}
+              {events.map(event => {
+                  const position = getEventGridPosition(event);
+                  return position ? (
+                      <div key={event.id} style={{ gridRow: position.gridRow, gridColumn: position.gridColumn }} className="p-1 h-12 relative -top-12">
+                          <EventItem event={event} />
+                      </div>
+                  ) : null;
+              })}
           </div>
         </div>
-        <ScrollBar orientation="horizontal" />
-      </ScrollArea>
-    </div>
+      </div>
+      <ScrollBar orientation="horizontal" />
+    </ScrollArea>
   );
 }

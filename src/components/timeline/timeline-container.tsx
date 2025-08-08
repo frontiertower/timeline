@@ -23,7 +23,6 @@ import {
 } from 'date-fns';
 import { TimelineHeader } from './timeline-header';
 import { TimelineView } from './timeline-view';
-import { Card, CardContent } from '@/components/ui/card';
 
 type ZoomLevel = 'day' | 'week' | 'month';
 
@@ -49,7 +48,6 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
         setZoom(zoomParam);
     }
     if (fromParam) {
-        // Use a regex to handle both full ISO strings and 'yyyy-MM-dd' formats
         const parsedDate = parse(fromParam, 'yyyy-MM-dd', new Date());
         setCurrentDate(parsedDate);
     } else {
@@ -100,82 +98,92 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
       return isWithinInterval(eventStart, dateRange) || isWithinInterval(dateRange.start, eventInterval);
     });
   }, [initialEvents, dateRange]);
-
+  
   const flattenedVisibleRooms = useMemo(() => {
     const roomIdsWithEvents = new Set(visibleEvents.map(event => event.location));
-    
+
     const flatten = (node: Room, arr: Room[]) => {
+      const hasVisibleChild = node.children?.some(child => 
+        child.type === 'floor' 
+          ? child.children?.some(room => roomIdsWithEvents.has(room.id)) 
+          : roomIdsWithEvents.has(child.id)
+      );
+
+      if (node.type === 'building') {
         arr.push(node);
-        if (node.children) {
-            node.children.forEach(child => flatten(child, arr));
-        }
+        node.children?.forEach(floor => {
+          const floorHasVisibleRooms = floor.children?.some(room => roomIdsWithEvents.has(room.id));
+          if (floorHasVisibleRooms) {
+            arr.push(floor);
+            floor.children?.forEach(room => {
+              if (roomIdsWithEvents.has(room.id)) {
+                arr.push(room);
+              }
+            });
+          }
+        });
+      }
     };
     
     const visibleTree: Room[] = [];
     if (initialRooms) {
-        if (initialRooms.children) {
-            const buildingNode = {...initialRooms, children: []}; // Clone building node
-            initialRooms.children.forEach(floor => {
-                const roomsInFloor = floor.children ? floor.children.filter(room => roomIdsWithEvents.has(room.id)) : [];
-                if(roomsInFloor.length > 0) {
-                    const floorWithVisibleRooms = {...floor, children: roomsInFloor};
-                    if (!buildingNode.children.some(f => f.id === floor.id)) {
-                        buildingNode.children.push(floorWithVisibleRooms);
-                    }
-                }
-            });
-
-            if (buildingNode.children.length > 0) {
-              flatten(buildingNode, visibleTree);
-            } else if (visibleEvents.length === 0) {
-               // When no events are visible, we show the building only.
-               visibleTree.push({...initialRooms, children: []});
-            }
-        } else if (roomIdsWithEvents.has(initialRooms.id)) {
-            visibleTree.push(initialRooms);
-        }
+      if (visibleEvents.length === 0) {
+        const buildingOnly: Room = {...initialRooms, children: []};
+        visibleTree.push(buildingOnly);
+        return visibleTree;
+      }
+      
+      const buildingNode = {...initialRooms};
+      const floorsWithEvents = buildingNode.children?.filter(floor => 
+        floor.children?.some(room => roomIdsWithEvents.has(room.id))
+      ) || [];
+      
+      if(floorsWithEvents.length > 0) {
+        visibleTree.push(buildingNode);
+        floorsWithEvents.forEach(floor => {
+          visibleTree.push(floor);
+          const roomsWithEvents = floor.children?.filter(room => roomIdsWithEvents.has(room.id)) || [];
+          roomsWithEvents.forEach(room => {
+            visibleTree.push(room);
+          });
+        });
+      } else {
+         visibleTree.push({...initialRooms, children: []});
+      }
     }
     
     return visibleTree;
-  }, [initialRooms, visibleEvents]);
+}, [initialRooms, visibleEvents]);
 
-
-  const eventRooms = useMemo(() => {
-      return flattenedVisibleRooms.filter(r => r.type === 'room');
-  }, [flattenedVisibleRooms]);
 
   if (!isMounted) {
       return null;
   }
 
   return (
-    <div className="flex flex-col h-full p-4 gap-4">
+    <div className="p-4">
       <TimelineHeader
         zoom={zoom}
         onZoomChange={handleZoomChange}
         dateRange={dateRange}
         onNavigate={handleNavigate}
       />
-      <Card className="flex-grow flex flex-col overflow-hidden">
-        <CardContent className="flex-grow p-0 flex">
-            {flattenedVisibleRooms.length > 0 ? (
+        <div className="mt-4 border rounded-lg shadow-sm">
+            {flattenedVisibleRooms.length > 1 ? (
                 <TimelineView
-                    rooms={initialRooms}
                     events={visibleEvents}
                     dateRange={dateRange}
                     zoom={zoom}
                     flattenedRooms={flattenedVisibleRooms}
-                    eventRooms={eventRooms}
                     onZoomChange={handleZoomChange}
                     onDateChange={handleDateChange}
                 />
             ) : (
-                <div className="flex-1 flex items-center justify-center text-muted-foreground">
+                <div className="flex-1 flex items-center justify-center text-muted-foreground p-8">
                     <p>No events scheduled for this period.</p>
                 </div>
             )}
-        </CardContent>
-      </Card>
+        </div>
     </div>
   );
 }
