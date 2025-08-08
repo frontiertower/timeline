@@ -32,7 +32,7 @@ const findRoom = (roomId: string, root: Room): Room | null => {
     return null;
 }
 
-export default function EventPage({ params }: EventPageProps) {
+export default function EventPage({ params: { id } }: EventPageProps) {
   const [event, setEvent] = useState<Event | null>(null);
   const [room, setRoom] = useState<Room | null>(null);
   const [loading, setLoading] = useState(true);
@@ -41,7 +41,7 @@ export default function EventPage({ params }: EventPageProps) {
     const fetchData = async () => {
       setLoading(true);
       const events = await getEvents();
-      const currentEvent = events.find((e: Event) => String(e.id) === params.id);
+      const currentEvent = events.find((e: Event) => String(e.id) === id);
       
       if (!currentEvent) {
         notFound();
@@ -60,7 +60,7 @@ export default function EventPage({ params }: EventPageProps) {
       setLoading(false);
     }
     fetchData();
-  }, [params.id]);
+  }, [id]);
 
   if (loading) {
       return (
