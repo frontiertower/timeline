@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Event, Room } from '@/lib/types';
@@ -96,7 +97,10 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
       const eventEnd = parseISO(event.endsAt);
       const eventInterval = { start: eventStart, end: eventEnd };
       return isWithinInterval(eventStart, dateRange) || isWithinInterval(dateRange.start, eventInterval);
-    });
+    }).map(event => ({
+        ...event,
+        location: event.location || 'frontier-tower',
+    }));
   }, [initialEvents, dateRange]);
   
   const flattenedVisibleRooms = useMemo(() => {
@@ -127,7 +131,8 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
     
     const visibleTree: Room[] = [];
     if (initialRooms) {
-      if (visibleEvents.length === 0) {
+      // Always show the building itself, especially for events with no location
+      if (visibleEvents.length === 0 && !roomIdsWithEvents.has('frontier-tower')) {
         const buildingOnly: Room = {...initialRooms, children: []};
         visibleTree.push(buildingOnly);
         return visibleTree;
@@ -138,8 +143,9 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
         floor.children?.some(room => roomIdsWithEvents.has(room.id))
       ) || [];
       
+      visibleTree.push(buildingNode);
+
       if(floorsWithEvents.length > 0) {
-        visibleTree.push(buildingNode);
         floorsWithEvents.forEach(floor => {
           visibleTree.push(floor);
           const roomsWithEvents = floor.children?.filter(room => roomIdsWithEvents.has(room.id)) || [];
@@ -147,8 +153,6 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
             visibleTree.push(room);
           });
         });
-      } else {
-         visibleTree.push({...initialRooms, children: []});
       }
     }
     
@@ -168,8 +172,8 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
         dateRange={dateRange}
         onNavigate={handleNavigate}
       />
-        <div className="mt-4 border rounded-lg shadow-sm">
-            {flattenedVisibleRooms.length > 1 ? (
+        <div className="mt-4 rounded-lg shadow-sm">
+            {flattenedVisibleRooms.length > 0 ? (
                 <TimelineView
                     events={visibleEvents}
                     dateRange={dateRange}
