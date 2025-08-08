@@ -45,8 +45,13 @@ export async function getEvents(): Promise<Event[]> {
         nextUrl = json.next;
     }
 
-    // Combine real events with mock events
-    return [...allEvents, ...mockEvents];
+    // Combine real events with mock events only in non-production environments
+    if (process.env.NODE_ENV !== 'production') {
+      return [...allEvents, ...mockEvents];
+    } else {
+      return allEvents;
+    }
+
 
   } catch (error) {
     console.error('Error fetching real events, falling back to mock data:', error);

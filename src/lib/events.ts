@@ -1,7 +1,7 @@
 
 import type { Event } from './types';
 import { set, startOfDay } from 'date-fns';
-import { toZonedTime } from 'date-fns-tz';
+import { fromZonedTime, toZonedTime } from 'date-fns-tz';
 
 const timeZone = 'America/Los_Angeles';
 
@@ -17,19 +17,19 @@ const createEvent = (
   endHour: number,
   location: string
 ): Event => {
-  const startsAtDate = set(startOfTodayInPST, {
+  const startsAtDate = fromZonedTime(set(startOfTodayInPST, {
     hours: Math.floor(startHour),
     minutes: (startHour % 1) * 60,
     seconds: 0,
     milliseconds: 0
-  });
+  }), timeZone);
 
-  const endsAtDate = set(startOfTodayInPST, {
+  const endsAtDate = fromZonedTime(set(startOfTodayInPST, {
     hours: Math.floor(endHour),
     minutes: (endHour % 1) * 60,
     seconds: 0,
     milliseconds: 0
-  });
+  }), timeZone);
 
   return {
     id,
