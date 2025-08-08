@@ -10,7 +10,9 @@ export async function getRooms(): Promise<Room> {
 export async function getEvents(): Promise<Event[]> {
   try {
     // In a real app, you'd fetch from your own API route which protects the key
-    const response = await fetch('/api/events'); 
+    // The full URL is required for server-side fetching
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+    const response = await fetch(`${apiUrl}/api/events`); 
     if (!response.ok) {
         console.error('Failed to fetch events from API, falling back to mock data.');
         return mockEvents;
