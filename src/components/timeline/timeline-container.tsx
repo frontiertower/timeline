@@ -121,15 +121,31 @@ export function TimelineContainer({ initialRooms, initialEvents }: TimelineConta
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [zoom, setZoom] = useState<ZoomLevel>((searchParams.get('zoom') as ZoomLevel) || 'day');
-  const [currentDate, setCurrentDate] = useState<Date>(
-    searchParams.get('from') ? parseISO(searchParams.get('from') as string) : new Date()
-  );
+  const [zoom, setZoom] = useState<ZoomLevel>('day');
+  const [currentDate, setCurrentDate] = useState<Date>(new Date('2025-09-05T10:00:00.000Z'));
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    const newUrl = `/?zoom=${zoom}&from=${dateRange.start.toISOString()}`;
-    window.history.pushState({}, '', newUrl);
-  }, [zoom, currentDate]);
+    setIsMounted(true);
+    const fromParam = searchParams.get('from');
+    const zoomParam = searchParams.get('zoom') as ZoomLevel;
+
+    if (zoomParam) {
+        setZoom(zoomParam);
+    }
+    if (fromParam) {
+        setCurrentDate(parseISO(fromParam));
+    } else {
+        setCurrentDate(new Date('2025-09-05T10:00:00.000Z'));
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (isMounted) {
+        const newUrl = `/?zoom=${zoom}&from=${currentDate.toISOString()}`;
+        window.history.pushState({}, '', newUrl);
+    }
+  }, [zoom, currentDate, isMounted]);
 
   const dateRange = useMemo(() => {
     switch (zoom) {
@@ -182,6 +198,9 @@ export function TimelineContainer({ initialRooms, initialEvents }: TimelineConta
     return rooms;
   }, [visibleRooms]);
 
+  if (!isMounted) {
+      return null;
+  }
 
   return (
     <div className="flex flex-col h-full p-4 gap-4">
