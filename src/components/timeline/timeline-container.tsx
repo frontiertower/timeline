@@ -17,7 +17,7 @@ import {
   subDays,
   subWeeks,
   subMonths,
-  isWithinInterval,
+  areIntervalsOverlapping,
   parseISO,
   parse,
   format,
@@ -109,8 +109,10 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
     return initialEvents.filter(event => {
       const eventStart = parseISO(event.startsAt);
       const eventEnd = parseISO(event.endsAt);
-      const eventInterval = { start: eventStart, end: eventEnd };
-      return isWithinInterval(eventStart, dateRange) || isWithinInterval(dateRange.start, eventInterval);
+      return areIntervalsOverlapping(
+        { start: eventStart, end: eventEnd },
+        dateRange
+      );
     }).map(event => {
         const locationIsValid = event.location && allRoomIds.has(event.location);
         return {

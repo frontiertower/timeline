@@ -11,6 +11,8 @@ import {
   format,
   isSameDay,
   getMinutes,
+  isBefore,
+  isAfter,
 } from 'date-fns';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
@@ -66,29 +68,42 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
     const end = new Date(event.endsAt);
 
     let gridColumnStart, gridColumnEnd;
+    const totalColumns = zoom === 'day' ? 48 : timeSlots.length;
 
     switch (zoom) {
       case 'day':
         const startMinutes = getHours(start) * 60 + getMinutes(start);
         const endMinutes = getHours(end) * 60 + getMinutes(end);
-        gridColumnStart = Math.floor(startMinutes / 30) + 1;
-        gridColumnEnd = Math.ceil(endMinutes / 30) + 1;
+        
+        gridColumnStart = isBefore(start, dateRange.start) ? 1 : Math.floor(startMinutes / 30) + 1;
+        gridColumnEnd = isAfter(end, dateRange.end) ? totalColumns + 1 : Math.ceil(endMinutes / 30) + 1;
+
+        if (isAfter(start, dateRange.end) || isBefore(end, dateRange.start)) {
+          return null;
+        }
+
         break;
       case 'week':
-        gridColumnStart = timeSlots.findIndex(slot => isSameDay(slot.date, start)) + 1;
-        gridColumnEnd = timeSlots.findIndex(slot => isSameDay(slot.date, end)) + 1;
-        if(gridColumnEnd === 0) gridColumnEnd = timeSlots.length + 1; // span to end if not in view
-        if(gridColumnStart === 0 && gridColumnEnd > 0) gridColumnStart = 1;
-        break;
       case 'month':
-         gridColumnStart = timeSlots.findIndex(slot => isSameDay(slot.date, start)) + 1;
-         gridColumnEnd = timeSlots.findIndex(slot => isSameDay(slot.date, end)) + 1;
-         if(gridColumnEnd === 0) gridColumnEnd = timeSlots.length + 1;
-         if(gridColumnStart === 0 && gridColumnEnd > 0) gridColumnStart = 1;
+        let startIndex = timeSlots.findIndex(slot => isSameDay(slot.date, start));
+        let endIndex = timeSlots.findIndex(slot => isSameDay(slot.date, end));
+        
+        gridColumnStart = isBefore(start, dateRange.start) ? 1 : startIndex + 1;
+        gridColumnEnd = isAfter(end, dateRange.end) ? totalColumns + 1 : endIndex + 2;
+
+        if (gridColumnStart === 0 && isAfter(end, dateRange.start)) {
+          gridColumnStart = 1;
+        }
+        if (gridColumnEnd === 1 && isBefore(start, dateRange.end)) {
+            gridColumnEnd = totalColumns + 1;
+        }
+        
         break;
     }
     
-    if (gridColumnStart === 0) return null;
+    if (!gridColumnStart || gridColumnStart > gridColumnEnd) {
+      return null;
+    }
 
     return {
       gridRow: roomIndex + 2, // +2 because of header row
