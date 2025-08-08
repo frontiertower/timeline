@@ -102,10 +102,10 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
   }
 
   return (
-    <ScrollArea className="w-full h-[80vh] rounded-b-lg">
-      <div className="flex">
+    <ScrollArea className="w-full rounded-b-lg border">
+      <div className="flex relative">
         <RoomList flattenedRooms={flattenedRooms} />
-        <div className="flex-1 relative">
+        <div className="flex-1 relative overflow-x-auto">
           {/* Header */}
           <div className="grid sticky top-0 z-10 bg-card" style={{ gridTemplateColumns: getGridTemplateColumns() }}>
               {timeSlots.map(({ label, date }) => (
@@ -120,7 +120,7 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
           <div className="grid" style={{ gridTemplateColumns: getGridTemplateColumns(), gridTemplateRows: `repeat(${flattenedRooms.length}, 3rem)` }}>
               {flattenedRooms.map((location, i) => (
                   timeSlots.map((_, j) => (
-                      <div key={`${location.id}-${j}`} className="h-12 border-b"></div>
+                      <div key={`${location.id}-${j}`} className="h-12"></div>
                   ))
               ))}
               {events.map(event => {
