@@ -31,13 +31,11 @@ export function RoomList({ rootRoom, flattenedRooms }: RoomListProps) {
         const isFloorWithVisibleRooms = room.type === 'floor' && room.children && room.children.length > 0;
 
         if (room.type === 'building' || isFloorWithVisibleRooms) {
-          const rowStyle = room.type === 'floor' 
-            ? "font-bold text-base pt-2 border-b" 
-            : "font-extrabold text-lg";
+          const rowStyle = "font-bold text-base pt-2 border-b";
           const padding = room.type === 'floor' ? '1rem' : undefined;
 
           return (
-            <div key={room.id} className={cn("flex items-center gap-2 p-2", rowStyle)} style={{paddingLeft: padding}}>
+            <div key={room.id} className={cn("flex items-center gap-2 p-2 h-12", rowStyle)} style={{paddingLeft: padding}}>
               {room.type === 'building' && <Building className="h-5 w-5 shrink-0" />}
               {room.type === 'floor' && <ChevronRight className="h-4 w-4 shrink-0" />}
               <span className="truncate">{room.name}</span>

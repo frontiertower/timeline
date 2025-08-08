@@ -55,7 +55,8 @@ export function TimelineView({ rooms, events, dateRange, zoom, flattenedRooms, e
   const timeSlots = getTimeSlots();
 
   const getEventGridPosition = (event: Event) => {
-    const roomIndex = eventRooms.findIndex(r => r.id === event.location);
+    // Use the full flattened list to find the correct row index, including buildings and floors
+    const roomIndex = flattenedRooms.findIndex(r => r.id === event.location);
     if (roomIndex === -1) return null;
 
     const start = new Date(event.startsAt);
@@ -87,6 +88,7 @@ export function TimelineView({ rooms, events, dateRange, zoom, flattenedRooms, e
     if (gridColumnStart === 0) return null;
 
     return {
+      // Add 1 to roomIndex because grid rows are 1-based
       gridRow: roomIndex + 1,
       gridColumn: `${gridColumnStart} / ${gridColumnEnd}`,
     };
@@ -106,14 +108,15 @@ export function TimelineView({ rooms, events, dateRange, zoom, flattenedRooms, e
               ))}
             </div>
           </div>
-          <div className="grid h-full" style={{ gridTemplateColumns: getGridTemplateColumns(), gridTemplateRows: `repeat(${eventRooms.length}, 3rem)` }}>
+          {/* Use the full flattened list for grid rows to ensure alignment */}
+          <div className="grid h-full" style={{ gridTemplateColumns: getGridTemplateColumns(), gridTemplateRows: `repeat(${flattenedRooms.length}, 3rem)` }}>
             {/* Grid lines & Rows */}
-            {eventRooms.map((room, i) =>
+            {flattenedRooms.map((location, i) =>
               {
+                // Render grid cells for all rows, including non-room types
                 return (
-                    // Render grid cells for room rows
                     timeSlots.map((_, j) => (
-                        <div key={`${room.id}-${j}`} className={cn("border-r border-b h-12", (i + j) % 2 === 0 ? "bg-muted/30" : "")}></div>
+                        <div key={`${location.id}-${j}`} className={cn("border-r border-b h-12", location.type !== 'room' ? 'bg-muted/30' : '')}></div>
                     ))
                 )
               }
