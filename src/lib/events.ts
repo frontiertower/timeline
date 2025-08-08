@@ -1,5 +1,6 @@
 import type { Event } from './types';
 import { addHours, set, startOfDay } from 'date-fns';
+import { toZonedTime } from 'date-fns-tz';
 
 const today = new Date();
 
@@ -16,8 +17,10 @@ const createEvent = (
     id,
     name,
     description: `[MOCK] ${description}`,
-    startsAt: addHours(baseTime, startHour).toISOString(),
-    endsAt: addHours(baseTime, endHour).toISOString(),
+    // Assuming the input startHour and endHour are in UTC, convert to PST.
+    // Pacific Standard Time (PST) is UTC-8
+    startsAt: toZonedTime(addHours(baseTime, startHour), 'America/Los_Angeles').toISOString(),
+    endsAt: toZonedTime(addHours(baseTime, endHour), 'America/Los_Angeles').toISOString(),
     location,
     color: 'hsl(240 4.8% 95.9%)', // Muted gray
   };
