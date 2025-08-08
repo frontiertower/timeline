@@ -35,6 +35,7 @@ export const rooms: Room = {
       type: 'floor',
       parentId: 'frontier-tower',
       children: [
+        { id: 'floor_2', name: 'Floor 2', type: 'room', parentId: 'floor-2' },
         { id: 'f2r1', name: 'Conference Room Alpha', type: 'room', parentId: 'floor-2' },
         { id: 'f2r2', name: 'Conference Room Beta', type: 'room', parentId: 'floor-2' },
         { id: 'f2r3', name: 'Breakout Zone 1', type: 'room', parentId: 'floor-2' },
@@ -43,12 +44,23 @@ export const rooms: Room = {
     },
     {
         id: 'floor-3',
-        name: 'Floor 3 - Sky Lounge',
+        name: 'Floor 3 - Offices',
         type: 'floor',
         parentId: 'frontier-tower',
         children: [
-            { id: 'f3r1', name: 'Sky Lounge Bar', type: 'room', parentId: 'floor-3' },
-            { id: 'f3r2', name: 'Observatory Deck', type: 'room', parentId: 'floor-3' },
+            { id: 'f3r1', name: 'Offices Bar', type: 'room', parentId: 'floor-3' },
+            { id: 'f3r2', name: 'Offices Deck', type: 'room', parentId: 'floor-3' },
+        ]
+    },
+    {
+        id: 'floor-16',
+        name: 'Floor 16 - Lounge',
+        type: 'floor',
+        parentId: 'frontier-tower',
+        children: [
+          { id: 'floor_16', name: 'Floor 16', type: 'room', parentId: 'floor-16' },
+          { id: 'f3r0', name: 'Lounge', type: 'room', parentId: 'floor-16' },
+          { id: 'f3r2', name: 'Observatory Deck', type: 'room', parentId: 'floor-16' },
         ]
     }
   ],
