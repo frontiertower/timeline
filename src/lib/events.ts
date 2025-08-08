@@ -1,17 +1,12 @@
 
 import type { Event } from './types';
-import { addHours } from 'date-fns';
+import { set } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 
 const timeZone = 'America/Los_Angeles';
 
-// Get the current date in the target timezone.
+// Get the current date object, but interpreted as being in the target timezone.
 const nowInPST = toZonedTime(new Date(), timeZone);
-
-// Get the start of today in the target timezone.
-// This is the key part: create a date that represents midnight *in that timezone*.
-const startOfTodayInPST = toZonedTime(`${nowInPST.getFullYear()}-${String(nowInPST.getMonth() + 1).padStart(2, '0')}-${String(nowInPST.getDate()).padStart(2, '0')}T00:00:00`, timeZone);
-
 
 const createEvent = (
   id: string,
@@ -21,12 +16,26 @@ const createEvent = (
   endHour: number,
   location: string
 ): Event => {
+  const startsAtDate = set(nowInPST, { 
+    hours: Math.floor(startHour), 
+    minutes: (startHour % 1) * 60,
+    seconds: 0,
+    milliseconds: 0 
+  });
+
+  const endsAtDate = set(nowInPST, {
+    hours: Math.floor(endHour),
+    minutes: (endHour % 1) * 60,
+    seconds: 0,
+    milliseconds: 0
+  });
+
   return {
     id,
     name,
     description: `[MOCK] ${description}`,
-    startsAt: addHours(startOfTodayInPST, startHour).toISOString(),
-    endsAt: addHours(startOfTodayInPST, endHour).toISOString(),
+    startsAt: startsAtDate.toISOString(),
+    endsAt: endsAtDate.toISOString(),
     location,
     color: 'hsl(240 4.8% 95.9%)', // Muted gray
   };
