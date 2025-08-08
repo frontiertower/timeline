@@ -4,12 +4,21 @@ import { events as mockEvents } from './events';
 
 export async function getRooms(): Promise<Room> {
   // This function now fetches from the new API route.
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/rooms`);
-  if (!response.ok) {
-    console.error('Failed to fetch rooms from API, falling back to local data.');
+  if (!process.env.NEXT_PUBLIC_API_URL) {
+    console.log('NEXT_PUBLIC_API_URL is not set, falling back to local data.');
     return rooms;
   }
-  return response.json();
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/rooms`);
+    if (!response.ok) {
+      console.error('Failed to fetch rooms from API, falling back to local data.');
+      return rooms;
+    }
+    return response.json();
+  } catch (error) {
+    console.error('Error fetching rooms, falling back to local data:', error);
+    return rooms;
+  }
 }
 
 export async function getEvents(): Promise<Event[]> {
