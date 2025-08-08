@@ -1,18 +1,18 @@
 
 import type { Event } from './types';
-import { addHours, set } from 'date-fns';
-import { toZonedTime, formatInTimeZone } from 'date-fns-tz';
+import { addHours } from 'date-fns';
+import { toZonedTime } from 'date-fns-tz';
 
 const timeZone = 'America/Los_Angeles';
 
-// Get the current date parts in the target timezone
-const nowInPST = new Date();
+// Get the current date and time in the target timezone.
+const nowInPST = toZonedTime(new Date(), timeZone);
+
+// Get the start of today in the target timezone.
 const year = nowInPST.getFullYear();
 const month = nowInPST.getMonth();
 const day = nowInPST.getDate();
-
-// Construct a date that represents the start of today in the target timezone
-const startOfTodayInPST = toZonedTime(new Date(year, month, day), timeZone);
+const startOfTodayInPST = new Date(year, month, day);
 
 
 const createEvent = (
