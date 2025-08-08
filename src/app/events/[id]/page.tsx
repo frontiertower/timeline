@@ -29,7 +29,7 @@ const findRoom = (roomId: string, root: Room): Room | null => {
 
 export default async function EventPage({ params }: EventPageProps) {
   const events = await getEvents();
-  const event = events.find((e: Event) => e.id === params.id);
+  const event = events.find((e: Event) => String(e.id) === params.id);
   
   if (!event) {
     notFound();
