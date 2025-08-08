@@ -1,7 +1,7 @@
 'use client';
 
 import type { Event, Room } from '@/lib/types';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   startOfDay,
@@ -86,8 +86,7 @@ const getVisibleRoomsAndIds = (
     return [visibleTree || allRooms, visibleIds];
 };
 
-
-export function TimelineContainer({ initialRooms, initialEvents }: TimelineContainerProps) {
+function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineContainerProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -159,20 +158,19 @@ export function TimelineContainer({ initialRooms, initialEvents }: TimelineConta
 
   const flattenedVisibleRooms = useMemo(() => {
     const rooms: Room[] = [];
-    const traverse = (node: Room, level: number = 0) => {
-      if (node.type === 'room') {
-        rooms.push(node);
-      } else {
-          // For buildings and floors, we add them to the list but they won't be event rows
-          rooms.push(node);
-          if (node.children) {
-            node.children.forEach(child => traverse(child, level + 1));
-          }
+    const traverse = (node: Room) => {
+      rooms.push(node);
+      if (node.children) {
+        node.children.forEach(child => traverse(child));
       }
     };
     if (visibleRooms) traverse(visibleRooms);
     return rooms;
   }, [visibleRooms]);
+
+  const eventRooms = useMemo(() => {
+      return flattenedVisibleRooms.filter(r => r.type === 'room');
+  }, [flattenedVisibleRooms]);
 
   if (!isMounted) {
       return null;
@@ -188,13 +186,14 @@ export function TimelineContainer({ initialRooms, initialEvents }: TimelineConta
       />
       <Card className="flex-grow flex flex-col overflow-hidden">
         <CardContent className="flex-grow p-0 flex">
-            {flattenedVisibleRooms.filter(r => r.type === 'room').length > 0 ? (
+            {eventRooms.length > 0 ? (
                 <TimelineView
                     rooms={visibleRooms}
                     events={visibleEvents}
                     dateRange={dateRange}
                     zoom={zoom}
                     flattenedRooms={flattenedVisibleRooms}
+                    eventRooms={eventRooms}
                 />
             ) : (
                 <div className="flex-1 flex items-center justify-center text-muted-foreground">
@@ -205,4 +204,13 @@ export function TimelineContainer({ initialRooms, initialEvents }: TimelineConta
       </Card>
     </div>
   );
+}
+
+
+export function TimelineContainer(props: TimelineContainerProps) {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <TimelineContainerComponent {...props} />
+        </Suspense>
+    )
 }

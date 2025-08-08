@@ -20,9 +20,10 @@ interface TimelineViewProps {
   dateRange: { start: Date; end: Date };
   zoom: 'day' | 'week' | 'month';
   flattenedRooms: Room[];
+  eventRooms: Room[];
 }
 
-export function TimelineView({ rooms, events, dateRange, zoom, flattenedRooms }: TimelineViewProps) {
+export function TimelineView({ rooms, events, dateRange, zoom, flattenedRooms, eventRooms }: TimelineViewProps) {
   
   const getGridTemplateColumns = () => {
     switch (zoom) {
@@ -54,7 +55,7 @@ export function TimelineView({ rooms, events, dateRange, zoom, flattenedRooms }:
   const timeSlots = getTimeSlots();
 
   const getEventGridPosition = (event: Event) => {
-    const roomIndex = flattenedRooms.findIndex(r => r.id === event.location);
+    const roomIndex = eventRooms.findIndex(r => r.id === event.location);
     if (roomIndex === -1) return null;
 
     const start = new Date(event.startsAt);
@@ -83,10 +84,7 @@ export function TimelineView({ rooms, events, dateRange, zoom, flattenedRooms }:
         break;
     }
     
-    if (gridColumnStart === 0 || roomIndex < 0) return null;
-
-    const room = flattenedRooms[roomIndex];
-    if (room.type !== 'room') return null;
+    if (gridColumnStart === 0) return null;
 
     return {
       gridRow: roomIndex + 1,
@@ -108,16 +106,10 @@ export function TimelineView({ rooms, events, dateRange, zoom, flattenedRooms }:
               ))}
             </div>
           </div>
-          <div className="grid h-full" style={{ gridTemplateColumns: getGridTemplateColumns(), gridAutoRows: '3rem' }}>
+          <div className="grid h-full" style={{ gridTemplateColumns: getGridTemplateColumns(), gridTemplateRows: `repeat(${eventRooms.length}, 3rem)` }}>
             {/* Grid lines & Rows */}
-            {flattenedRooms.map((room, i) =>
+            {eventRooms.map((room, i) =>
               {
-                if(room.type !== 'room') {
-                    // Render a separator for floors
-                    return (
-                        <div key={room.id} style={{gridRow: i + 1, gridColumn: `1 / -1`}} className="border-b"></div>
-                    )
-                }
                 return (
                     // Render grid cells for room rows
                     timeSlots.map((_, j) => (
