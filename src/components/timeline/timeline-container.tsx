@@ -18,6 +18,8 @@ import {
   subMonths,
   isWithinInterval,
   parseISO,
+  parse,
+  format,
 } from 'date-fns';
 import { TimelineHeader } from './timeline-header';
 import { TimelineView } from './timeline-view';
@@ -47,7 +49,7 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
         setZoom(zoomParam);
     }
     if (fromParam) {
-        setCurrentDate(parseISO(fromParam));
+        setCurrentDate(parse(fromParam, 'yyyy-MM-dd', new Date()));
     } else {
         setCurrentDate(new Date('2025-09-05T10:00:00.000Z'));
     }
@@ -55,7 +57,7 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
 
   useEffect(() => {
     if (isMounted) {
-        const newUrl = `/?zoom=${zoom}&from=${currentDate.toISOString()}`;
+        const newUrl = `/?zoom=${zoom}&from=${format(currentDate, 'yyyy-MM-dd')}`;
         window.history.pushState({}, '', newUrl);
     }
   }, [zoom, currentDate, isMounted]);
@@ -74,6 +76,10 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
   const handleZoomChange = (newZoom: ZoomLevel) => {
     setZoom(newZoom);
   };
+  
+  const handleDateChange = (newDate: Date) => {
+    setCurrentDate(newDate);
+  }
 
   const handleNavigate = (direction: 'prev' | 'next') => {
     const newDate = {
@@ -96,62 +102,15 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
   const flattenedVisibleRooms = useMemo(() => {
     const roomIdsWithEvents = new Set(visibleEvents.map(event => event.location));
     
-    const visibleRooms: Room[] = [];
-    const traverse = (node: Room, isVisible: (id: string) => boolean) => {
-        const hasVisibleChildren = node.children && node.children.some(child => {
-            if (child.type === 'room') return isVisible(child.id);
-            // This is a simplistic check. For deeper nesting, a recursive check would be needed.
-            // For now, assuming floors contain rooms and checking if any of those rooms are visible.
-            return child.children && child.children.some(room => room.type === 'room' && isVisible(room.id));
-        });
-
-        if (node.type === 'building' || hasVisibleChildren) {
-            visibleRooms.push(node);
-            if (node.children) {
-                node.children.forEach(child => {
-                    if (child.type === 'room' && isVisible(child.id)) {
-                        visibleRooms.push(child);
-                    } else if (child.type === 'floor') {
-                        // Recursively call traverse to check visibility of floor's children
-                        traverse(child, isVisible);
-                    }
-                });
-            }
+    const flatten = (node: Room, arr: Room[]) => {
+        arr.push(node);
+        if (node.children) {
+            node.children.forEach(child => flatten(child, arr));
         }
     };
-
+    
+    const visibleTree: Room[] = [];
     if (initialRooms) {
-        // A new tree traversal that filters based on event visibility
-        const rooms: Room[] = [];
-        const filterAndFlatten = (node: Room) => {
-            const childrenWithEvents = node.children ? node.children.map(child => {
-                // If a child is a room, it must have events
-                if (child.type === 'room') {
-                    return roomIdsWithEvents.has(child.id) ? child : null;
-                }
-                // If a child is a floor, it must have rooms with events
-                if (child.type === 'floor') {
-                    const visibleRooms = child.children ? child.children.filter(room => roomIdsWithEvents.has(room.id)) : [];
-                    if (visibleRooms.length > 0) {
-                        return { ...child, children: visibleRooms };
-                    }
-                }
-                return null;
-            }).filter(Boolean) as Room[] : [];
-
-            if (node.type === 'building' || childrenWithEvents.length > 0) {
-                 rooms.push({ ...node, children: childrenWithEvents });
-            }
-        };
-
-        const flatten = (node: Room, arr: Room[]) => {
-            arr.push(node);
-            if (node.children) {
-                node.children.forEach(child => flatten(child, arr));
-            }
-        };
-
-        const visibleTree: Room[] = [];
         if (initialRooms.children) {
             const buildingNode = {...initialRooms, children: []}; // Clone building node
             initialRooms.children.forEach(floor => {
@@ -175,10 +134,9 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
         } else if (roomIdsWithEvents.has(initialRooms.id)) {
             visibleTree.push(initialRooms);
         }
-        
-        return visibleTree;
     }
-    return [];
+    
+    return visibleTree;
   }, [initialRooms, visibleEvents]);
 
 
@@ -208,6 +166,8 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
                     zoom={zoom}
                     flattenedRooms={flattenedVisibleRooms}
                     eventRooms={eventRooms}
+                    onZoomChange={handleZoomChange}
+                    onDateChange={handleDateChange}
                 />
             ) : (
                 <div className="flex-1 flex items-center justify-center text-muted-foreground">

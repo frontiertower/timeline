@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, isSameMonth } from 'date-fns';
 import { FrontierTowerLogo } from '../icons';
 
 type ZoomLevel = 'day' | 'week' | 'month';
@@ -27,7 +27,12 @@ export function TimelineHeader({
       case 'day':
         return format(dateRange.start, 'MMMM d, yyyy');
       case 'week':
-        return `${format(dateRange.start, 'MMM d')} - ${format(dateRange.end, 'd, yyyy')}`;
+        const start = dateRange.start;
+        const end = dateRange.end;
+        if (isSameMonth(start, end)) {
+          return `${format(start, 'MMMM d')} - ${format(end, 'd, yyyy')}`;
+        }
+        return `${format(start, 'MMM d')} - ${format(end, 'MMM d, yyyy')}`;
       case 'month':
         return format(dateRange.start, 'MMMM yyyy');
     }

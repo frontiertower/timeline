@@ -14,16 +14,20 @@ import {
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 
+type ZoomLevel = 'day' | 'week' | 'month';
+
 interface TimelineViewProps {
   rooms: Room;
   events: Event[];
   dateRange: { start: Date; end: Date };
-  zoom: 'day' | 'week' | 'month';
+  zoom: ZoomLevel;
   flattenedRooms: Room[];
   eventRooms: Room[];
+  onZoomChange: (zoom: ZoomLevel) => void;
+  onDateChange: (date: Date) => void;
 }
 
-export function TimelineView({ rooms, events, dateRange, zoom, flattenedRooms, eventRooms }: TimelineViewProps) {
+export function TimelineView({ rooms, events, dateRange, zoom, flattenedRooms, eventRooms, onZoomChange, onDateChange }: TimelineViewProps) {
   
   const getGridTemplateColumns = () => {
     switch (zoom) {
@@ -94,6 +98,13 @@ export function TimelineView({ rooms, events, dateRange, zoom, flattenedRooms, e
     };
   };
 
+  const handleTimeSlotClick = (date: Date) => {
+    if (zoom === 'week' || zoom === 'month') {
+        onDateChange(date);
+        onZoomChange('day');
+    }
+  }
+
   return (
     <div className="flex flex-1 min-h-0">
       <RoomList rootRoom={rooms} flattenedRooms={flattenedRooms} />
@@ -102,7 +113,9 @@ export function TimelineView({ rooms, events, dateRange, zoom, flattenedRooms, e
           <div className="sticky top-0 z-10 bg-card">
             <div className="grid" style={{ gridTemplateColumns: getGridTemplateColumns() }}>
               {timeSlots.map(({ label, date }) => (
-                <div key={label} className="flex-shrink-0 text-center p-2 border-b border-r text-sm font-medium text-muted-foreground h-12 flex items-center justify-center">
+                <div key={label} className={cn("flex-shrink-0 text-center p-2 border-b border-r text-sm font-medium text-muted-foreground h-12 flex items-center justify-center", (zoom === 'week' || zoom === 'month') && "cursor-pointer hover:bg-muted")}
+                 onClick={() => handleTimeSlotClick(date)}
+                >
                   {label}
                 </div>
               ))}
@@ -116,7 +129,7 @@ export function TimelineView({ rooms, events, dateRange, zoom, flattenedRooms, e
                 // Render grid cells for all rows, including non-room types
                 return (
                     timeSlots.map((_, j) => (
-                        <div key={`${location.id}-${j}`} className={cn("border-r border-b h-12", location.type !== 'room' ? 'bg-muted/30' : '')}></div>
+                        <div key={`${location.id}-${j}`} className={cn("h-12 border-b", j < timeSlots.length - 1 ? 'border-r' : '')}></div>
                     ))
                 )
               }
