@@ -1,10 +1,12 @@
+
 'use client';
 
 import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, HelpCircle } from 'lucide-react';
 import { format, isSameMonth } from 'date-fns';
 import { FrontierTowerLogo } from '../icons';
+import Link from 'next/link';
 
 type ZoomLevel = 'day' | 'week' | 'month';
 
@@ -42,29 +44,45 @@ export function TimelineHeader({
     <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-4 bg-card rounded-lg shadow-sm border">
       <div className="flex items-center gap-3">
         <FrontierTowerLogo className="h-8 w-8 text-primary" />
-        <h1 className="text-2xl font-headline text-foreground">Frontier Tower Timeline</h1>
-      </div>
-      <div className="flex items-center gap-2">
-        <Button variant="outline" size="icon" onClick={() => onNavigate('prev')}>
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-        <div className="text-center w-48 font-semibold text-foreground">
-          {formatDateRange()}
+        <div>
+          <h1 className="text-2xl font-headline text-foreground">Frontier Tower Timeline</h1>
+          <p className="text-sm text-muted-foreground">
+            (
+            <Link href="https://ft0.sh/timeline" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+              ft0.sh/timeline
+            </Link>
+            )
+          </p>
         </div>
-        <Button variant="outline" size="icon" onClick={() => onNavigate('next')}>
-          <ChevronRight className="h-4 w-4" />
+      </div>
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="icon" onClick={() => onNavigate('prev')}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <div className="text-center w-48 font-semibold text-foreground">
+            {formatDateRange()}
+          </div>
+          <Button variant="outline" size="icon" onClick={() => onNavigate('next')}>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+        <ToggleGroup
+          type="single"
+          value={zoom}
+          onValueChange={(value: ZoomLevel) => value && onZoomChange(value)}
+          aria-label="Timeline Zoom Level"
+        >
+          <ToggleGroupItem value="day">Day</ToggleGroupItem>
+          <ToggleGroupItem value="week">Week</ToggleGroupItem>
+          <ToggleGroupItem value="month">Month</ToggleGroupItem>
+        </ToggleGroup>
+        <Button asChild variant="outline" size="icon">
+          <Link href="/readme">
+            <HelpCircle className="h-4 w-4" />
+          </Link>
         </Button>
       </div>
-      <ToggleGroup
-        type="single"
-        value={zoom}
-        onValueChange={(value: ZoomLevel) => value && onZoomChange(value)}
-        aria-label="Timeline Zoom Level"
-      >
-        <ToggleGroupItem value="day">Day</ToggleGroupItem>
-        <ToggleGroupItem value="week">Week</ToggleGroupItem>
-        <ToggleGroupItem value="month">Month</ToggleGroupItem>
-      </ToggleGroup>
     </div>
   );
 }
