@@ -9,18 +9,43 @@ export async function getRooms(): Promise<Room> {
 
 export async function getEvents(): Promise<Event[]> {
   try {
-    // In a real app, you'd fetch from your own API route which protects the key
-    // The full URL is required for server-side fetching
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
-    const response = await fetch(`${apiUrl}/api/events`); 
-    if (!response.ok) {
-        console.error('Failed to fetch events from API, falling back to mock data.');
-        return mockEvents;
+    let allEvents: Event[] = [];
+    let nextUrl: string | null = 'https://api.berlinhouse.com/events/';
+    let pageCount = 0;
+    const maxPages = 10;
+
+    while (nextUrl && pageCount < maxPages) {
+      pageCount++;
+      const response = await fetch(nextUrl, {
+        headers: {
+          'X-API-Key': `${process.env.FRONTIER_TOWER_API_KEY}`,
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        next: {
+          revalidate: 3600 // Revalidate every hour
+        }
+      });
+
+      if (!response.ok) {
+          console.error('Failed to fetch events from external API:', { status: response.status, url: nextUrl });
+          break; 
+      }
+
+      const json = await response.json();
+      if (json.results && Array.isArray(json.results)) {
+        const coloredEvents = json.results.map((event: any) => ({
+            ...event,
+            color: 'hsl(259 80% 70%)', // primary purple
+        }));
+        allEvents = allEvents.concat(coloredEvents);
+      }
+      
+      nextUrl = json.next;
     }
-    const realEvents = await response.json();
     
     // Combine real events with mock events
-    return [...realEvents, ...mockEvents];
+    return [...allEvents, ...mockEvents];
 
   } catch (error) {
     console.error('Error fetching events, falling back to mock data:', error);
