@@ -13,12 +13,12 @@ interface EventPageProps {
   };
 }
 
-const findRoomName = (roomId: string, root: Room): string | null => {
+const findRoom = (roomId: string, root: Room): Room | null => {
     const queue: Room[] = [root];
     while(queue.length > 0) {
         const current = queue.shift();
         if (current?.id === roomId) {
-            return current.name;
+            return current;
         }
         if (current?.children) {
             queue.push(...current.children);
@@ -30,13 +30,18 @@ const findRoomName = (roomId: string, root: Room): string | null => {
 export default async function EventPage({ params }: EventPageProps) {
   const events = await getEvents();
   const event = events.find((e: Event) => e.id === params.id);
-  const rooms = await getRooms();
-
+  
   if (!event) {
     notFound();
   }
   
-  const roomName = findRoomName(event.location.roomId, rooms);
+  const rooms = await getRooms();
+  const room = findRoom(event.location.roomId, rooms);
+
+  if (!room) {
+    // If the room for the event is not found, treat it as a not-found page
+    notFound();
+  }
   
   const eventStart = new Date(event.startsAt);
   const eventEnd = new Date(event.endsAt);
@@ -56,7 +61,7 @@ export default async function EventPage({ params }: EventPageProps) {
                     <CardDescription className="text-base pt-4 flex flex-col sm:flex-row sm:items-center gap-x-6 gap-y-2">
                         <span className="flex items-center gap-2">
                             <MapPin className="h-4 w-4 text-accent"/>
-                            {roomName || 'Unknown Location'}
+                            {room.name || 'Unknown Location'}
                         </span>
                          <span className="flex items-center gap-2">
                             <Calendar className="h-4 w-4 text-accent"/>
