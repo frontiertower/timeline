@@ -1,6 +1,8 @@
 import { getRooms } from '@/lib/data';
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const rooms = await getRooms();

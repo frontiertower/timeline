@@ -3,6 +3,7 @@ import { subDays, addDays, addHours, formatISO } from 'date-fns';
 
 const now = new Date('2025-09-05T10:00:00.000Z');
 
+// This mock data is now only a fallback for development if the API fails.
 const rawRooms: Omit<Room, 'children'>[] = [
   { id: 'frontier-tower', name: 'Frontier Tower', type: 'building', parentId: null },
   { id: 'floor-1', name: 'Lobby & Conference', type: 'floor', parentId: 'frontier-tower' },
@@ -82,37 +83,23 @@ const mockEvents: Event[] = [
 
 
 export async function getRooms(): Promise<Room> {
-  const rooms: Room[] = JSON.parse(JSON.stringify(rawRooms));
-  const roomMap = new Map(rooms.map(room => [room.id, room]));
-  const tree: Room[] = [];
+    const rooms: Room[] = JSON.parse(JSON.stringify(rawRooms));
+    const roomMap = new Map(rooms.map(room => [room.id, room]));
+    const tree: Room[] = [];
 
-  rooms.forEach(room => {
-    if (room.parentId) {
-      const parent = roomMap.get(room.parentId);
-      if (parent) {
-        (parent.children = parent.children || []).push(room);
+    rooms.forEach(room => {
+      if (room.parentId) {
+        const parent = roomMap.get(room.parentId);
+        if (parent) {
+          (parent.children = parent.children || []).push(room);
+        }
+      } else {
+        tree.push(room);
       }
-    } else {
-      tree.push(room);
-    }
-  });
-
-  return tree[0]; 
+    });
+    return tree[0];
 }
 
 export async function getEvents(): Promise<Event[]> {
-  // In a real application, you would fetch from the external API:
-  // const apiKey = process.env.FRONTIER_TOWER_API_KEY;
-  // if (!apiKey) throw new Error("API key is not configured.");
-  // const response = await fetch('https://api.berlinhouse.com/events/', {
-  //   headers: {
-  //     'Authorization': `Bearer ${apiKey}`
-  //   }
-  // });
-  // if (!response.ok) throw new Error("Failed to fetch events from external API.");
-  // const events = await response.json();
-  // return events;
-
-  // For demonstration, we return mock data.
   return Promise.resolve(mockEvents);
 }
