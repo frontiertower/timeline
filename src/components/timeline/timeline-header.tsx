@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight, HelpCircle } from 'lucide-react';
 import { format, isSameMonth } from 'date-fns';
 import { FrontierTowerLogo } from '../icons';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 type ZoomLevel = 'day' | 'week' | 'month';
 
@@ -23,6 +24,19 @@ export function TimelineHeader({
   dateRange,
   onNavigate,
 }: TimelineHeaderProps) {
+  const [currentTime, setCurrentTime] = useState<string | null>(null);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(format(new Date(), 'MMM d, p'));
+    }, 60 * 1000); // Update every minute
+
+    // Set initial time
+    setCurrentTime(format(new Date(), 'MMM d, p'));
+
+    return () => clearInterval(timer);
+  }, []);
+
 
   const formatDateRange = () => {
     switch (zoom) {
@@ -56,6 +70,11 @@ export function TimelineHeader({
         </div>
       </div>
       <div className="flex items-center gap-4">
+        {currentTime && (
+          <div className="text-sm font-medium text-muted-foreground pr-4 border-r">
+            {currentTime}
+          </div>
+        )}
         <div className="flex items-center gap-2">
           <Button variant="outline" size="icon" onClick={() => onNavigate('prev')}>
             <ChevronLeft className="h-4 w-4" />
