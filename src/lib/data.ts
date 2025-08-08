@@ -26,7 +26,9 @@ export async function getEvents(): Promise<Event[]> {
   try {
     const response = await fetch('https://api.berlinhouse.com/events/', {
       headers: {
-        'Authorization': `Bearer ${process.env.FRONTIER_TOWER_API_KEY}`,
+        'X-API-Key': `${process.env.FRONTIER_TOWER_API_KEY}`,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
       },
       next: {
         revalidate: 3600 // Revalidate every hour
