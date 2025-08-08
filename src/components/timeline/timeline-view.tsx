@@ -102,7 +102,7 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
   }
 
   return (
-    <ScrollArea className="w-full rounded-b-lg border">
+    <ScrollArea className="w-full rounded-b-lg">
       <div className="flex relative">
         <RoomList flattenedRooms={flattenedRooms} />
         <div className="flex-1 relative overflow-x-auto">
