@@ -30,90 +30,60 @@ interface TimelineContainerProps {
   initialEvents: Event[];
 }
 
-const getVisibleRoomsAndIds = (rooms: Room, visibleEventRoomIds: Set<string>): [Room, Set<string>] => {
-  const visibleRoomIds = new Set<string>();
 
-  const filterRooms = (node: Room): Room | null => {
-    const hasVisibleEvents = visibleEventRoomIds.has(node.id);
-    let isParentOfVisible = false;
-
-    const visibleChildren = node.children?.map(filterRooms).filter(Boolean) as Room[] | undefined;
-
-    if (visibleChildren && visibleChildren.length > 0) {
-      isParentOfVisible = true;
-    }
-
-    if (hasVisibleEvents || isParentOfVisible) {
-      visibleRoomIds.add(node.id);
-      if (node.children) {
-        node.children.forEach(child => visibleRoomIds.add(child.id));
-      }
-      return {
-        ...node,
-        children: visibleChildren,
-      };
+const findRoom = (roomId: string, root: Room): Room | null => {
+    const queue: Room[] = [root];
+    while(queue.length > 0) {
+        const current = queue.shift();
+        if (current?.id === roomId) {
+            return current;
+        }
+        if (current?.children) {
+            queue.push(...current.children);
+        }
     }
     return null;
-  };
-  
-  const rootClone = JSON.parse(JSON.stringify(rooms));
-  const filteredRoot = filterRooms(rootClone);
+}
 
-  if (filteredRoot) {
-     (filteredRoot.children || []).forEach(floor => {
-        visibleRoomIds.add(floor.id);
-        (floor.children || []).forEach(room => {
-            if (visibleEventRoomIds.has(room.id)) {
-                visibleRoomIds.add(room.id);
-            }
-        });
-     });
-  }
+const getVisibleRoomsAndIds = (
+    allRooms: Room,
+    visibleEventRoomIds: Set<string>
+): [Room, Set<string>] => {
+    const visibleIds = new Set<string>();
 
-  // A new function to prune the tree
-  const pruneTree = (node: Room, visibleIds: Set<string>): Room | null => {
-    const isVisible = visibleIds.has(node.id);
+    const addParents = (roomId: string) => {
+        let current = findRoom(roomId, allRooms);
+        while (current) {
+            visibleIds.add(current.id);
+            current = current.parentId ? findRoom(current.parentId, allRooms) : null;
+        }
+    };
     
-    if (!node.children) {
-      return isVisible ? node : null;
-    }
+    visibleEventRoomIds.forEach(id => addParents(id));
 
-    const newChildren = node.children
-      .map(child => pruneTree(child, visibleIds))
-      .filter((child): child is Room => child !== null);
+    const filterTree = (node: Room): Room | null => {
+        if (!visibleIds.has(node.id)) {
+            return null;
+        }
 
-    if (newChildren.length > 0 || node.type !== 'room') {
-      return { ...node, children: newChildren };
-    }
+        const filteredChildren = node.children
+            ?.map(child => filterTree(child))
+            .filter((child): child is Room => child !== null);
+        
+        // Hide floors that have no visible rooms under them
+        if (node.type === 'floor' && (!filteredChildren || filteredChildren.length === 0)) {
+            return null;
+        }
 
-    return null;
-  };
+        return {
+            ...node,
+            children: filteredChildren,
+        };
+    };
+    
+    const visibleTree = filterTree(JSON.parse(JSON.stringify(allRooms)));
 
-  const visibleRoomIdsWithParents = new Set<string>();
-  const getParents = (roomId: string, allRooms: Room) => {
-      let current: Room | undefined = undefined;
-      const findRoom = (node: Room, id: string): Room | undefined => {
-          if (node.id === id) return node;
-          if (node.children) {
-              for (const child of node.children) {
-                  const found = findRoom(child, id);
-                  if (found) return found;
-              }
-          }
-          return undefined;
-      }
-      current = findRoom(allRooms, roomId);
-      while (current) {
-          visibleRoomIdsWithParents.add(current.id);
-          current = current.parentId ? findRoom(allRooms, current.parentId) : undefined;
-      }
-  };
-
-  visibleEventRoomIds.forEach(id => getParents(id, rootClone));
-  
-  const finalPrunedTree = pruneTree(JSON.parse(JSON.stringify(rooms)), visibleRoomIdsWithParents);
-
-  return [finalPrunedTree || rooms, visibleRoomIdsWithParents];
+    return [visibleTree || allRooms, visibleIds];
 };
 
 
@@ -189,10 +159,15 @@ export function TimelineContainer({ initialRooms, initialEvents }: TimelineConta
 
   const flattenedVisibleRooms = useMemo(() => {
     const rooms: Room[] = [];
-    const traverse = (node: Room) => {
-      rooms.push(node);
-      if (node.children) {
-        node.children.forEach(traverse);
+    const traverse = (node: Room, level: number = 0) => {
+      if (node.type === 'room') {
+        rooms.push(node);
+      } else {
+          // For buildings and floors, we add them to the list but they won't be event rows
+          rooms.push(node);
+          if (node.children) {
+            node.children.forEach(child => traverse(child, level + 1));
+          }
       }
     };
     if (visibleRooms) traverse(visibleRooms);
@@ -213,7 +188,7 @@ export function TimelineContainer({ initialRooms, initialEvents }: TimelineConta
       />
       <Card className="flex-grow flex flex-col overflow-hidden">
         <CardContent className="flex-grow p-0 flex">
-            {flattenedVisibleRooms.length > 1 ? (
+            {flattenedVisibleRooms.filter(r => r.type === 'room').length > 0 ? (
                 <TimelineView
                     rooms={visibleRooms}
                     events={visibleEvents}

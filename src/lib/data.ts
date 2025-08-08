@@ -49,7 +49,7 @@ export async function getEvents(): Promise<Event[]> {
     
     mockEvents.forEach(mockEvent => {
       if (!realEventIds.has(mockEvent.id)) {
-        allEvents.push(mockEvent);
+        //allEvents.push(mockEvent);
       }
     });
 

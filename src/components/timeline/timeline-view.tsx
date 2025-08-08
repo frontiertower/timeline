@@ -9,7 +9,6 @@ import {
   getHours,
   format,
   isSameDay,
-  differenceInMinutes,
   getMinutes,
 } from 'date-fns';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
@@ -84,7 +83,10 @@ export function TimelineView({ rooms, events, dateRange, zoom, flattenedRooms }:
         break;
     }
     
-    if (gridColumnStart === 0 || roomIndex < 1) return null;
+    if (gridColumnStart === 0 || roomIndex < 0) return null;
+
+    const room = flattenedRooms[roomIndex];
+    if (room.type !== 'room') return null;
 
     return {
       gridRow: roomIndex + 1,
@@ -100,24 +102,35 @@ export function TimelineView({ rooms, events, dateRange, zoom, flattenedRooms }:
           <div className="sticky top-0 z-10 bg-card">
             <div className="grid" style={{ gridTemplateColumns: getGridTemplateColumns() }}>
               {timeSlots.map(({ label, date }) => (
-                <div key={label} className="flex-shrink-0 text-center p-2 border-b border-r text-sm font-medium text-muted-foreground">
+                <div key={label} className="flex-shrink-0 text-center p-2 border-b border-r text-sm font-medium text-muted-foreground h-12 flex items-center justify-center">
                   {label}
                 </div>
               ))}
             </div>
           </div>
-          <div className="grid h-full" style={{ gridTemplateColumns: getGridTemplateColumns(), gridTemplateRows: `repeat(${flattenedRooms.length}, auto)` }}>
-            {/* Grid lines */}
+          <div className="grid h-full" style={{ gridTemplateColumns: getGridTemplateColumns(), gridAutoRows: '3rem' }}>
+            {/* Grid lines & Rows */}
             {flattenedRooms.map((room, i) =>
-              timeSlots.map((_, j) => (
-                <div key={`${room.id}-${j}`} className={cn("border-r border-b", (i + j) % 2 === 0 ? "bg-muted/30" : "")}></div>
-              ))
+              {
+                if(room.type !== 'room') {
+                    // Render a separator for floors
+                    return (
+                        <div key={room.id} style={{gridRow: i + 1, gridColumn: `1 / -1`}} className="border-b"></div>
+                    )
+                }
+                return (
+                    // Render grid cells for room rows
+                    timeSlots.map((_, j) => (
+                        <div key={`${room.id}-${j}`} className={cn("border-r border-b h-12", (i + j) % 2 === 0 ? "bg-muted/30" : "")}></div>
+                    ))
+                )
+              }
             )}
             {/* Events */}
             {events.map(event => {
               const position = getEventGridPosition(event);
               return position ? (
-                <div key={event.id} style={{ gridRow: position.gridRow, gridColumn: position.gridColumn }} className="p-1">
+                <div key={event.id} style={{ gridRow: position.gridRow, gridColumn: position.gridColumn }} className="p-1 h-12">
                   <EventItem event={event} />
                 </div>
               ) : null;
