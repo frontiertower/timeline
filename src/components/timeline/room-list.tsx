@@ -18,7 +18,7 @@ export function RoomList({ rootRoom, flattenedRooms }: RoomListProps) {
             return (
               <div 
                 key={room.id} 
-                className="flex items-center gap-2 h-12 px-2 text-sm border-b"
+                className="flex items-center gap-2 h-12 px-2 text-sm"
                 style={{ paddingLeft: '2rem' }}
               >
                   <DoorOpen className="h-4 w-4 shrink-0 text-muted-foreground" />
@@ -26,12 +26,11 @@ export function RoomList({ rootRoom, flattenedRooms }: RoomListProps) {
               </div>
             )
         }
-//        return null;
         
         const isFloorWithVisibleRooms = room.type === 'floor' && room.children && room.children.length > 0;
 
         if (room.type === 'building' || isFloorWithVisibleRooms) {
-          const rowStyle = "font-bold text-base pt-2 border-b";
+          const rowStyle = "font-bold text-base pt-2";
           const padding = room.type === 'floor' ? '1rem' : undefined;
 
           return (
@@ -43,13 +42,13 @@ export function RoomList({ rootRoom, flattenedRooms }: RoomListProps) {
           )
         }
 
-        return null;
+        return <div key={room.id} className="h-12"></div>;
       });
   }
   
   return (
-    <div className="w-64 border-r bg-card sticky left-0 shrink-0">
-      <div className="h-12 flex items-center p-2 border-b text-sm font-medium sticky top-0 bg-card z-20">
+    <div className="w-64 bg-card sticky left-0 shrink-0">
+      <div className="h-12 flex items-center p-2 text-sm font-medium sticky top-0 bg-card z-20">
          <Building className="h-4 w-4 mr-2"/> Location
       </div>
       <ScrollArea className="h-[calc(100%-3rem)]">

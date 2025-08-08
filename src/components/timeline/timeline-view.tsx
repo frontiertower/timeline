@@ -59,7 +59,6 @@ export function TimelineView({ rooms, events, dateRange, zoom, flattenedRooms, e
   const timeSlots = getTimeSlots();
 
   const getEventGridPosition = (event: Event) => {
-    // Use the full flattened list to find the correct row index, including buildings and floors
     const roomIndex = flattenedRooms.findIndex(r => r.id === event.location);
     if (roomIndex === -1) return null;
 
@@ -92,7 +91,6 @@ export function TimelineView({ rooms, events, dateRange, zoom, flattenedRooms, e
     if (gridColumnStart === 0) return null;
 
     return {
-      // Add 1 to roomIndex because grid rows are 1-based
       gridRow: roomIndex + 1,
       gridColumn: `${gridColumnStart} / ${gridColumnEnd}`,
     };
@@ -113,7 +111,7 @@ export function TimelineView({ rooms, events, dateRange, zoom, flattenedRooms, e
           <div className="sticky top-0 z-10 bg-card">
             <div className="grid" style={{ gridTemplateColumns: getGridTemplateColumns() }}>
               {timeSlots.map(({ label, date }) => (
-                <div key={label} className={cn("flex-shrink-0 text-center p-2 border-b border-r text-sm font-medium text-muted-foreground h-12 flex items-center justify-center", (zoom === 'week' || zoom === 'month') && "cursor-pointer hover:bg-muted")}
+                <div key={label} className={cn("flex-shrink-0 text-center p-2 text-sm font-medium text-muted-foreground h-12 flex items-center justify-center", (zoom === 'week' || zoom === 'month') && "cursor-pointer hover:bg-muted")}
                  onClick={() => handleTimeSlotClick(date)}
                 >
                   {label}
@@ -121,15 +119,13 @@ export function TimelineView({ rooms, events, dateRange, zoom, flattenedRooms, e
               ))}
             </div>
           </div>
-          {/* Use the full flattened list for grid rows to ensure alignment */}
           <div className="grid h-full" style={{ gridTemplateColumns: getGridTemplateColumns(), gridTemplateRows: `repeat(${flattenedRooms.length}, 3rem)` }}>
-            {/* Grid lines & Rows */}
+            {/* Grid Rows */}
             {flattenedRooms.map((location, i) =>
               {
-                // Render grid cells for all rows, including non-room types
                 return (
                     timeSlots.map((_, j) => (
-                        <div key={`${location.id}-${j}`} className={cn("h-12 border-b", j < timeSlots.length - 1 ? 'border-r' : '')}></div>
+                        <div key={`${location.id}-${j}`} className="h-12"></div>
                     ))
                 )
               }
