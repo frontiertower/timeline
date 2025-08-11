@@ -32,19 +32,50 @@ export const rooms: Room = {
       type: 'floor',
       parentId: 'frontier-tower',
       children: [
-        { id: 'floor_2', name: 'Spaceship', type: 'room', parentId: 'floor-2' },
         { id: 'f2r1', name: 'Spaceship', type: 'room', parentId: 'floor-2' },
         { id: 'f2r2', name: 'VIP Room', type: 'room', parentId: 'floor-2' },
       ],
     },
     {
         id: 'floor-3',
-        name: 'Floor 3 - Offices',
+        name: '3 - Offices',
         type: 'floor',
         parentId: 'frontier-tower',
         children: [
             { id: 'f3r1', name: 'Offices Bar', type: 'room', parentId: 'floor-3' },
-            { id: 'floor_3', name: 'Floor 3', type: 'room', parentId: 'floor-3' },
+        ]
+    },
+    {
+        id: 'floor-4',
+        name: '4 - Robotics & Hard Tech',
+        type: 'floor',
+        parentId: 'frontier-tower',
+        children: [
+        ]
+    },
+    {
+        id: 'floor-8',
+        name: '8 - Biotech',
+        type: 'floor',
+        parentId: 'frontier-tower',
+        children: [
+        ]
+    },
+    {
+        id: 'floor-9',
+        name: '9 - AI & Autonomous Systems',
+        type: 'floor',
+        parentId: 'frontier-tower',
+        children: [
+        ]
+    },
+    {
+        id: 'floor-14',
+        name: '14 - Human Flourishing',
+        type: 'floor',
+        parentId: 'frontier-tower',
+        children: [
+          { id: 'f14r1', name: 'Lounge', type: 'room', parentId: 'floor-14' },
         ]
     },
     {
@@ -54,16 +85,15 @@ export const rooms: Room = {
         parentId: 'frontier-tower',
         children: [
             { id: 'f15r1', name: 'Deep Work Space', type: 'room', parentId: 'floor-15' },
-            { id: 'blue_room', name: 'Blue Room', type: 'room', parentId: 'floor-15' },
+            { id: 'f15r2', name: 'Blue Room', type: 'room', parentId: 'floor-15' },
         ]
     },
     {
         id: 'floor-16',
-        name: 'Floor 16 - Lounge',
+        name: '16 - Lounge',
         type: 'floor',
         parentId: 'frontier-tower',
         children: [
-          { id: 'floor_16', name: 'Floor 16', type: 'room', parentId: 'floor-16' },
           { id: 'f16r1', name: 'Lounge', type: 'room', parentId: 'floor-16' },
           { id: 'f16r2', name: 'Coffee Meetup', type: 'room', parentId: 'floor-16' },
           { id: 'f16r3', name: 'Lounge', type: 'room', parentId: 'floor-16' },

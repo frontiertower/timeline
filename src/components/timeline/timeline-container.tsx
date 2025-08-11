@@ -140,60 +140,36 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
   
   const flattenedVisibleRooms = useMemo(() => {
     const roomIdsWithEvents = new Set(visibleEvents.map(event => event.location));
-
-    const flatten = (node: Room, arr: Room[]) => {
-      const hasVisibleChild = node.children?.some(child => 
-        child.type === 'floor' 
-          ? child.children?.some(room => roomIdsWithEvents.has(room.id)) 
-          : roomIdsWithEvents.has(child.id)
-      );
-
-      if (node.type === 'building') {
-        arr.push(node);
-        node.children?.forEach(floor => {
-          const floorHasVisibleRooms = floor.children?.some(room => roomIdsWithEvents.has(room.id));
-          if (floorHasVisibleRooms) {
-            arr.push(floor);
-            floor.children?.forEach(room => {
-              if (roomIdsWithEvents.has(room.id)) {
-                arr.push(room);
-              }
-            });
-          }
-        });
-      }
-    };
-    
     const visibleTree: Room[] = [];
-    if (initialRooms) {
-      if (visibleEvents.length === 0 && !roomIdsWithEvents.has('frontier-tower')) {
-        const buildingOnly: Room = {...initialRooms, children: []};
-        if (roomIdsWithEvents.has('frontier-tower')) {
-          visibleTree.push(buildingOnly);
-        }
-        return visibleTree;
+  
+    if (!initialRooms || visibleEvents.length === 0) {
+      if (roomIdsWithEvents.has('frontier-tower')) {
+        visibleTree.push({ ...initialRooms, children: [] });
       }
-      
-      const buildingNode = {...initialRooms};
-      const floorsWithEvents = buildingNode.children?.filter(floor => 
-        floor.children?.some(room => roomIdsWithEvents.has(room.id))
-      ) || [];
-      
-      visibleTree.push(buildingNode);
-
-      if(floorsWithEvents.length > 0) {
-        floorsWithEvents.forEach(floor => {
-          visibleTree.push(floor);
-          const roomsWithEvents = floor.children?.filter(room => roomIdsWithEvents.has(room.id)) || [];
-          roomsWithEvents.forEach(room => {
-            visibleTree.push(room);
-          });
+      return visibleTree;
+    }
+  
+    const buildingNode = { ...initialRooms };
+    visibleTree.push(buildingNode);
+  
+    const floors = buildingNode.children || [];
+  
+    floors.forEach(floor => {
+      // A floor is visible if it has an event OR any of its rooms have an event.
+      const floorHasEvent = roomIdsWithEvents.has(floor.id);
+      const roomsWithEvents = floor.children?.filter(room => roomIdsWithEvents.has(room.id)) || [];
+      const floorHasVisibleRooms = roomsWithEvents.length > 0;
+  
+      if (floorHasEvent || floorHasVisibleRooms) {
+        visibleTree.push(floor);
+        roomsWithEvents.forEach(room => {
+          visibleTree.push(room);
         });
       }
-    }
-    
+    });
+  
     return visibleTree;
-}, [initialRooms, visibleEvents]);
+  }, [initialRooms, visibleEvents]);
 
 
   if (!isMounted) {

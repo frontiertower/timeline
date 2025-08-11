@@ -73,7 +73,7 @@ export const events: Event[] = [
     'A chance to connect with fellow attendees and speakers.',
     13,
     14,
-    'floor_3'
+    'f3r1'
   ),
   createEvent(
     'evt-5',
@@ -81,7 +81,7 @@ export const events: Event[] = [
     'Experience the future with our VR/AR demos.',
     14.5,
     16,
-    'floor_16'
+    'f16r1'
   ),
   createEvent(
     'evt-6',
@@ -89,7 +89,7 @@ export const events: Event[] = [
     'Relax and unwind at our exclusive evening mixer.',
     18,
     20,
-    'floor_16'
+    'f16r2'
   ),
   createEvent(
     '243',
@@ -97,6 +97,6 @@ export const events: Event[] = [
     'Join us for a magical night of stargazing.',
     21,
     22,
-    'floor_16'
+    'floor-17'
   ),
 ];

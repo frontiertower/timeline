@@ -16,47 +16,25 @@ const COLORS: Record<EventSource, string> = {
 // In-memory cache for events
 let cachedEvents: Event[] | null = null;
 let lastFetchTimestamp: number | null = null;
-const CACHE_DURATION_MS = 3600 * 1000; // 1 hour
+const CACHE_DURATION_MS = 10 * 60 * 1000; // 10m
 
 const locationNameMapping: Record<string, string> = {
     // Luma variations first
-    "frontier tower @ blue room": "blue_room",
-    "blue room": "blue_room",
-    "spaceship": "f2r1",
-    "events floor": "f2r1",
-    "floor 16": "floor_16",
-    "lounge": "f16r1",
-    "floor 3": "floor_3",
-    "lobby": "f1r1",
-    "robot arena": "f0r1",
-    "vip room": "f2r2",
-    "offices bar": "f3r1",
-    "deep work space": "f15r1",
-    "coffee meetup": "f16r2",
-    "dining room": "f16r4",
-    "cinema room": "f16r5",
-    "bbq": "f17r1",
-    "rave": "f17r2",
-    // Frontier Tower API exact matches
-    "f0r1": "f0r1",
-    "f0r2": "f0r2",
-    "f0r3": "f0r3",
-    "f1r1": "f1r1",
-    "floor_2": "floor_2",
-    "f2r1": "f2r1",
-    "f2r2": "f2r2",
-    "f3r1": "f3r1",
-    "floor_3": "floor_3",
-    "f15r1": "f15r1",
-    "blue_room": "blue_room",
-    "floor_16": "floor_16",
-    "f16r1": "f16r1",
-    "f16r2": "f16r2",
-    "f16r3": "f16r3",
-    "f16r4": "f16r4",
-    "f16r5": "f16r5",
-    "f17r1": "f17r1",
-    "f17r2": "f17r2",
+    "frontier tower @ blue room": "f15r2",
+    "frontier tower | berlinhouse, 995 market st, san francisco, ca 94103, usa": "frontier-tower",
+    "frontier tower 🧑‍🚀, 995 market st, san francisco, ca 94103, usa": "frontier-tower",
+    "frontier tower / floor 2 995 market street, san francisco": "floor-2",
+    "frontier tower @ spaceship / floor 2 995 market street, san francisco": "f2r1",
+    "frontier tower @ lounge / floor 14 995 market street, san francisco": "f14r1",
+    "frontier tower @ lounge / floor 16 995 market street, san francisco": "f16r1",
+    "frontier tower @ biotech 995 market street, san francisco": "floor-8",
+    "frontier tower @ human flourishing 995 market street, san francisco": "floor-14",
+    "frontier tower @ hard tech & robotics 995 market street, san francisco": "floor-4",
+    "frontier tower @ artificial intelligence 995 market street, san francisco": "floor-9",
+    // frontier tower api exact matches
+    "floor_2": "floor-2",
+    "floor_16": "floor-16",
+    "blue_room": "f15r2",
 };
 
 function normalizeLocation(location: string | null | undefined): string {
@@ -78,7 +56,7 @@ function normalizeLocation(location: string | null | undefined): string {
         }
     }
 
-    return 'frontier-tower'; // Default if no match is found
+    return location; // Default if no match is found
 }
 
 
@@ -166,8 +144,8 @@ export async function getEvents(): Promise<Event[]> {
   console.log('Fetching fresh events...');
   
   const sources = [
-    fetchFrontierTowerEvents(),
     fetchLumaEvents(),
+    fetchFrontierTowerEvents(),
   ];
 
   if (process.env.NODE_ENV !== 'production') {
