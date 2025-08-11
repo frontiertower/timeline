@@ -44,7 +44,7 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
     setIsMounted(true);
     const fromParam = searchParams.get('from');
     const zoomParam = searchParams.get('zoom') as ZoomLevel;
-    const sourcesParam = search_params.get('sources');
+    const sourcesParam = searchParams.get('sources');
 
     if (zoomParam) {
         setZoom(zoomParam);
