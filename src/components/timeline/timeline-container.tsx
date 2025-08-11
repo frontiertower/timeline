@@ -44,7 +44,7 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
     setIsMounted(true);
     const fromParam = searchParams.get('from');
     const zoomParam = searchParams.get('zoom') as ZoomLevel;
-    const sourcesParam = searchParams.get('sources');
+    const sourcesParam = search_params.get('sources');
 
     if (zoomParam) {
         setZoom(zoomParam);
@@ -132,7 +132,7 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
         }
     });
 
-    if (unknownLocations.size > 0) {
+    if (unknownLocations.size > 0 && typeof window !== 'undefined') {
       console.warn('Detected events with unknown locations:', Array.from(unknownLocations));
     }
     return events;
@@ -142,7 +142,11 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
     const roomIdsWithEvents = new Set(visibleEvents.map(event => event.location));
     const visibleTree: Room[] = [];
   
-    if (!initialRooms || visibleEvents.length === 0) {
+    if (!initialRooms) {
+      return visibleTree;
+    }
+
+    if (visibleEvents.length === 0) {
       if (roomIdsWithEvents.has('frontier-tower')) {
         visibleTree.push({ ...initialRooms, children: [] });
       }
@@ -155,7 +159,6 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
     const floors = buildingNode.children || [];
   
     floors.forEach(floor => {
-      // A floor is visible if it has an event OR any of its rooms have an event.
       const floorHasEvent = roomIdsWithEvents.has(floor.id);
       const roomsWithEvents = floor.children?.filter(room => roomIdsWithEvents.has(room.id)) || [];
       const floorHasVisibleRooms = roomsWithEvents.length > 0;
