@@ -68,7 +68,7 @@ export function TimelineHeader({
 
   return (
     <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-4 bg-card rounded-lg shadow-sm border">
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 self-start md:self-center">
         <FrontierTowerLogo className="h-8 w-8 text-primary" />
         <div>
           <h1 className="text-2xl font-headline text-foreground">Frontier Tower Timeline</h1>
@@ -81,9 +81,9 @@ export function TimelineHeader({
           </p>
         </div>
       </div>
-      <div className="flex items-center gap-4 flex-wrap justify-center">
+      <div className="flex flex-col sm:flex-row items-center gap-4 flex-wrap justify-center">
         {currentTime && (
-          <div className="text-sm font-medium text-muted-foreground pr-4 border-r">
+          <div className="text-sm font-medium text-muted-foreground pr-4 sm:border-r">
             {currentTime}
           </div>
         )}
@@ -109,7 +109,7 @@ export function TimelineHeader({
           <ToggleGroupItem value="month">Month</ToggleGroupItem>
         </ToggleGroup>
         
-        <div className="flex items-center gap-4 pl-4 border-l">
+        <div className="flex items-center gap-4 pl-4 sm:border-l">
             <div className="flex items-center space-x-2">
                 <Checkbox id="ft-checkbox" checked={visibleSources.includes('frontier-tower')} onCheckedChange={(checked) => handleSourceChange('frontier-tower', !!checked)} style={{'--checkbox-color': 'hsl(259 80% 70%)'} as React.CSSProperties} />
                 <Label htmlFor="ft-checkbox">FrontierTower</Label>
