@@ -1,7 +1,6 @@
-
 'use client';
 
-import type { Event, Room } from '@/lib/types';
+import type { Event, Room, EventSource } from '@/lib/types';
 import { useState, useMemo, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
@@ -38,12 +37,14 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
 
   const [zoom, setZoom] = useState<ZoomLevel>('day');
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
+  const [visibleSources, setVisibleSources] = useState<EventSource[]>(['frontier-tower', 'luma', 'mock']);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
     const fromParam = searchParams.get('from');
     const zoomParam = searchParams.get('zoom') as ZoomLevel;
+    const sourcesParam = searchParams.get('sources');
 
     if (zoomParam) {
         setZoom(zoomParam);
@@ -54,14 +55,17 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
     } else {
         setCurrentDate(new Date());
     }
+    if(sourcesParam) {
+        setVisibleSources(sourcesParam.split(',') as EventSource[]);
+    }
   }, [searchParams]);
 
   useEffect(() => {
     if (isMounted) {
-        const newUrl = `/?zoom=${zoom}&from=${format(currentDate, 'yyyy-MM-dd')}`;
+        const newUrl = `/?zoom=${zoom}&from=${format(currentDate, 'yyyy-MM-dd')}&sources=${visibleSources.join(',')}`;
         window.history.pushState({}, '', newUrl);
     }
-  }, [zoom, currentDate, isMounted]);
+  }, [zoom, currentDate, visibleSources, isMounted]);
 
   const dateRange = useMemo(() => {
     switch (zoom) {
@@ -107,6 +111,9 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
   
   const visibleEvents = useMemo(() => {
     return initialEvents.filter(event => {
+      if (!visibleSources.includes(event.source)) {
+          return false;
+      }
       const eventStart = parseISO(event.startsAt);
       const eventEnd = parseISO(event.endsAt);
       return areIntervalsOverlapping(
@@ -120,7 +127,7 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
             location: locationIsValid ? event.location : 'frontier-tower',
         }
     });
-  }, [initialEvents, dateRange, allRoomIds]);
+  }, [initialEvents, dateRange, allRoomIds, visibleSources]);
   
   const flattenedVisibleRooms = useMemo(() => {
     const roomIdsWithEvents = new Set(visibleEvents.map(event => event.location));
@@ -191,6 +198,8 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
         onZoomChange={handleZoomChange}
         dateRange={dateRange}
         onNavigate={handleNavigate}
+        visibleSources={visibleSources}
+        onVisibleSourcesChange={setVisibleSources}
       />
         <div className="flex-grow mt-4 rounded-lg shadow-sm overflow-hidden">
             {flattenedVisibleRooms.length > 0 ? (

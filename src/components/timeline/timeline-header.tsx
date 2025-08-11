@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -8,6 +7,9 @@ import { format, isSameMonth } from 'date-fns';
 import { FrontierTowerLogo } from '../icons';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import type { EventSource } from '@/lib/types';
+import { Checkbox } from '../ui/checkbox';
+import { Label } from '../ui/label';
 
 type ZoomLevel = 'day' | 'week' | 'month';
 
@@ -16,6 +18,8 @@ interface TimelineHeaderProps {
   onZoomChange: (zoom: ZoomLevel) => void;
   dateRange: { start: Date; end: Date };
   onNavigate: (direction: 'prev' | 'next') => void;
+  visibleSources: EventSource[];
+  onVisibleSourcesChange: (sources: EventSource[]) => void;
 }
 
 export function TimelineHeader({
@@ -23,6 +27,8 @@ export function TimelineHeader({
   onZoomChange,
   dateRange,
   onNavigate,
+  visibleSources,
+  onVisibleSourcesChange
 }: TimelineHeaderProps) {
   const [currentTime, setCurrentTime] = useState<string | null>(null);
 
@@ -36,7 +42,6 @@ export function TimelineHeader({
 
     return () => clearInterval(timer);
   }, []);
-
 
   const formatDateRange = () => {
     switch (zoom) {
@@ -53,6 +58,13 @@ export function TimelineHeader({
         return format(dateRange.start, 'MMMM yyyy');
     }
   };
+  
+  const handleSourceChange = (source: EventSource, checked: boolean) => {
+    const newSources = checked
+      ? [...visibleSources, source]
+      : visibleSources.filter(s => s !== source);
+    onVisibleSourcesChange(newSources);
+  }
 
   return (
     <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-4 bg-card rounded-lg shadow-sm border">
@@ -69,7 +81,7 @@ export function TimelineHeader({
           </p>
         </div>
       </div>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 flex-wrap justify-center">
         {currentTime && (
           <div className="text-sm font-medium text-muted-foreground pr-4 border-r">
             {currentTime}
@@ -96,6 +108,18 @@ export function TimelineHeader({
           <ToggleGroupItem value="week">Week</ToggleGroupItem>
           <ToggleGroupItem value="month">Month</ToggleGroupItem>
         </ToggleGroup>
+        
+        <div className="flex items-center gap-4 pl-4 border-l">
+            <div className="flex items-center space-x-2">
+                <Checkbox id="ft-checkbox" checked={visibleSources.includes('frontier-tower')} onCheckedChange={(checked) => handleSourceChange('frontier-tower', !!checked)} style={{'--checkbox-color': 'hsl(259 80% 70%)'} as React.CSSProperties} />
+                <Label htmlFor="ft-checkbox">FrontierTower</Label>
+            </div>
+             <div className="flex items-center space-x-2">
+                <Checkbox id="luma-checkbox" checked={visibleSources.includes('luma')} onCheckedChange={(checked) => handleSourceChange('luma', !!checked)} style={{'--checkbox-color': 'hsl(140 50% 60%)'} as React.CSSProperties}/>
+                <Label htmlFor="luma-checkbox">Luma</Label>
+            </div>
+        </div>
+
         <Button asChild variant="outline" size="icon">
           <Link href="/readme">
             <HelpCircle className="h-4 w-4" />

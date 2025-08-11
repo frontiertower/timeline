@@ -1,4 +1,3 @@
-
 import type { Event } from './types';
 import { set, startOfDay } from 'date-fns';
 import { fromZonedTime, toZonedTime } from 'date-fns-tz';
@@ -39,6 +38,7 @@ const createEvent = (
     endsAt: endsAtDate.toISOString(),
     location,
     color: 'hsl(240 4.8% 95.9%)', // Muted gray
+    source: 'mock',
   };
 };
 

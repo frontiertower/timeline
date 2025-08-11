@@ -6,6 +6,8 @@ export interface Room {
   children?: Room[];
 }
 
+export type EventSource = 'frontier-tower' | 'luma' | 'mock';
+
 export interface Event {
   id: string;
   name: string;
@@ -14,4 +16,5 @@ export interface Event {
   endsAt: string; // ISO 8601 string
   location: string;
   color?: string;
+  source: EventSource;
 }
