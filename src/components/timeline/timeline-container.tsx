@@ -110,7 +110,8 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
   }, [initialRooms]);
   
   const visibleEvents = useMemo(() => {
-    return initialEvents.filter(event => {
+    const unknownLocations = new Set<string>();
+    const events = initialEvents.filter(event => {
       if (!visibleSources.includes(event.source)) {
           return false;
       }
@@ -122,11 +123,19 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
       );
     }).map(event => {
         const locationIsValid = event.location && allRoomIds.has(event.location);
+        if (!locationIsValid && event.location) {
+          unknownLocations.add(event.location);
+        }
         return {
             ...event,
             location: locationIsValid ? event.location : 'frontier-tower',
         }
     });
+
+    if (unknownLocations.size > 0) {
+      console.warn('Detected events with unknown locations:', Array.from(unknownLocations));
+    }
+    return events;
   }, [initialEvents, dateRange, allRoomIds, visibleSources]);
   
   const flattenedVisibleRooms = useMemo(() => {

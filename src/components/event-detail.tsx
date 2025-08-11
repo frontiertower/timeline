@@ -55,8 +55,9 @@ export function EventDetail({ id }: EventDetailProps) {
     const fetchData = async () => {
       setLoading(true);
       try {
+        const decodedId = decodeURIComponent(id);
         const events = await fetchEventsFromApi();
-        const currentEvent = events.find((e: Event) => String(e.id) === id);
+        const currentEvent = events.find((e: Event) => e.id === decodedId);
         
         if (!currentEvent) {
           notFound();
