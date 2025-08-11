@@ -56,7 +56,7 @@ function normalizeLocation(location: string | null | undefined): string {
         }
     }
 
-    return location; // Default if no match is found
+    return 'frontier-tower'; // Default if no match is found
 }
 
 
@@ -133,6 +133,12 @@ async function fetchLumaEvents(): Promise<Event[]> {
     console.error('Error fetching Luma events:', error);
     return [];
   }
+}
+
+export function clearCache() {
+  cachedEvents = null;
+  lastFetchTimestamp = null;
+  console.log('Event cache cleared.');
 }
 
 export async function getEvents(): Promise<Event[]> {

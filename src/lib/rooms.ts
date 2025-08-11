@@ -90,7 +90,7 @@ export const rooms: Room = {
     },
     {
         id: 'floor-16',
-        name: '16 - Lounge',
+        name: '16 - d/acc',
         type: 'floor',
         parentId: 'frontier-tower',
         children: [
