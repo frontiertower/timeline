@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowLeft, Calendar, Clock, MapPin } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, Link as LucidLink, MapPin } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { useEffect, useState } from 'react';
 
@@ -98,6 +98,8 @@ export function EventDetail({ id }: EventDetailProps) {
   
   const eventStart = parseISO(event.startsAt);
   const eventEnd = parseISO(event.endsAt);
+  const eventTitle = !event.originalLocation.startsWith("https://lu.ma") ? event.originalLocation : "";
+  const eventLink = event.originalLocation.startsWith("https://lu.ma") ? event.originalLocation : "";
 
   return (
     <div className="min-h-screen bg-muted/40 p-4 sm:p-8 flex items-center justify-center">
@@ -112,10 +114,18 @@ export function EventDetail({ id }: EventDetailProps) {
                 <CardHeader>
                     <CardTitle className="text-4xl font-headline">{event.name}</CardTitle>
                     <CardDescription className="text-base pt-4 flex flex-col sm:flex-row sm:items-center gap-x-6 gap-y-2">
-                        <span className="flex items-center gap-2">
-                            <MapPin className="h-4 w-4 text-accent"/>
-                            {room.name || 'Unknown Location'}
-                        </span>
+                      {
+                        eventLink ? 
+                          (<a className="flex items-center gap-2" title={eventLink} href={eventLink}>
+                              <LucidLink className="h-4 w-4 text-link"/>
+                              luma
+                          </a>)
+                        :
+                          (<span className="flex items-center gap-2" title={eventTitle}>
+                              <MapPin className="h-4 w-4 text-accent"/>
+                              {room.name || 'Unknown Location'}
+                          </span>)
+                        }
                          <span className="flex items-center gap-2">
                             <Calendar className="h-4 w-4 text-accent"/>
                             {format(eventStart, 'EEEE, MMMM d, yyyy')}

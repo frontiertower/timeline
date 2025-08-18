@@ -40,7 +40,7 @@ export function EventItem({ event }: EventItemProps) {
         <TooltipContent>
           <p className="font-bold">{event.name}</p>
           <p className="text-sm text-muted-foreground">
-            <b>{format(new Date(event.startsAt), 'p')}</b> - <b>{format(new Date(event.endsAt), 'p')}</b> @  <b>{event.location}</b>
+            <b>{format(new Date(event.startsAt), 'p')}</b> - <b>{format(new Date(event.endsAt), 'p')}</b> @ <b>{event.location}</b>
           </p>
           {event.description.substring(0,50)}{event.description.length > 50 ? '...' : ''}
         </TooltipContent>

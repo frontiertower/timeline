@@ -35,7 +35,7 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [zoom, setZoom] = useState<ZoomLevel>('day');
+  const [zoom, setZoom] = useState<ZoomLevel>('week');
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [visibleSources, setVisibleSources] = useState<EventSource[]>(['frontier-tower', 'luma', 'mock']);
   const [isMounted, setIsMounted] = useState(false);

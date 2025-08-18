@@ -54,6 +54,22 @@ export const rooms: Room = {
         ]
     },
     {
+        id: 'floor-6',
+        name: '6 - Arts & Music',
+        type: 'floor',
+        parentId: 'frontier-tower',
+        children: [
+        ]
+    },
+    {
+        id: 'floor-7',
+        name: '7 - Makerspace',
+        type: 'floor',
+        parentId: 'frontier-tower',
+        children: [
+        ]
+    },
+    {
         id: 'floor-8',
         name: '8 - Biotech',
         type: 'floor',
@@ -76,6 +92,14 @@ export const rooms: Room = {
         parentId: 'frontier-tower',
         children: [
           { id: 'f14r1', name: 'Lounge', type: 'room', parentId: 'floor-14' },
+        ]
+    },
+    {
+        id: 'floor-12',
+        name: '12 - Ethereum House',
+        type: 'floor',
+        parentId: 'frontier-tower',
+        children: [
         ]
     },
     {
