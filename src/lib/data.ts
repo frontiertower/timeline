@@ -77,7 +77,6 @@ function normalizeLocation(location: string | null | undefined, name: string | n
         }
     }
 
-    console.warn(`Failed to normalize location ${location} for ${name}`);
     return 'frontier-tower'; // Default if no match is found
 }
 
@@ -190,10 +189,28 @@ export async function getEvents(): Promise<Event[]> {
   const uniqueEvents = new Map<string, Event>();
   allEvents.forEach(event => {
     const key = `${event.name}|${event.startsAt}`;
-    if (!uniqueEvents.has(key)) {
+    const existingEvent = uniqueEvents.get(key);
+
+    if (existingEvent) {
+      // If we have a duplicate, prioritize the Frontier Tower event
+      // but combine the IDs so both are accessible.
+      const isExistingFT = existingEvent.source === 'frontier-tower';
+      const isCurrentFT = event.source === 'frontier-tower';
+
+      if (isCurrentFT && !isExistingFT) {
+        // The new event is FT, the existing one is not. Replace it.
+        event.id = `${event.id},${existingEvent.id}`; // Combine IDs
+        uniqueEvents.set(key, event);
+      } else if (isExistingFT && !isCurrentFT) {
+        // The existing one is FT, the new one is not. Combine IDs and keep existing.
+        existingEvent.id = `${existingEvent.id},${event.id}`;
+      }
+      // If both are FT or both are Luma, we just keep the first one.
+    } else {
       uniqueEvents.set(key, event);
     }
   });
+
 
   cachedEvents = Array.from(uniqueEvents.values());
   lastFetchTimestamp = now;
