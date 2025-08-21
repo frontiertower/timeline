@@ -1,5 +1,5 @@
-# Firebase Studio
+# Frontier Tower Timeline
 
-This is a NextJS starter in Firebase Studio.
+([https://ft0.sh/timeline](https://ft0.sh/timeline))
 
-To get started, take a look at src/app/page.tsx.
+This is a vibe-coded event viewer for Frontier Tower. It's primarily designed to test the various event APIs. Contact [Sameer](https://t.me/SxP256) for more info.
