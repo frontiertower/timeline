@@ -152,6 +152,7 @@ async function fetchLumaEvents(): Promise<Event[]> {
           originalLocation: event.location,
           color: COLORS['luma'],
           source: 'luma',
+          rawJson: JSON.stringify(event, null, 2),
         });
       }
     }
@@ -187,39 +188,8 @@ export async function getEvents(): Promise<Event[]> {
 
   const results = await Promise.all(sources);
   const allEvents = results.flat();
-
-  // Deduplicate events
-  const uniqueEvents = new Map<string, Event>();
-  allEvents.forEach(event => {
-    const key = `${event.name}|${event.startsAt.substring(0,16)}`;
-    const existingEvent = uniqueEvents.get(key);
-
-    if(key.includes("Coordination")) {
-      console.log(`key: ${key}, source ${event.source} existing: ${existingEvent}`);
-    }
-
-    if (existingEvent) {
-      // If we have a duplicate, prioritize the Frontier Tower event
-      // but combine the IDs so both are accessible.
-      const isExistingFT = existingEvent.source === 'frontier-tower';
-      const isCurrentFT = event.source === 'frontier-tower';
-
-      if (isCurrentFT && !isExistingFT) {
-        // The new event is FT, the existing one is not. Replace it.
-        event.id = `${event.id},${existingEvent.id}`; // Combine IDs
-        uniqueEvents.set(key, event);
-      } else if (isExistingFT && !isCurrentFT) {
-        // The existing one is FT, the new one is not. Combine IDs and keep existing.
-        existingEvent.id = `${existingEvent.id},${event.id}`;
-      }
-      // If both are FT or both are Luma, we just keep the first one.
-    } else {
-      uniqueEvents.set(key, event);
-    }
-  });
-
-
-  cachedEvents = Array.from(uniqueEvents.values());
+  
+  cachedEvents = allEvents;
   lastFetchTimestamp = now;
 
   return cachedEvents;

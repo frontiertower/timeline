@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Event, Room, EventSource } from '@/lib/types';
@@ -111,7 +112,9 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
   
   const visibleEvents = useMemo(() => {
     const unknownLocations = new Set<string>();
-    const events = initialEvents.filter(event => {
+    
+    // 1. Filter events by date range and selected sources
+    let filteredEvents = initialEvents.filter(event => {
       if (!visibleSources.includes(event.source)) {
           return false;
       }
@@ -121,7 +124,37 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
         { start: eventStart, end: eventEnd },
         dateRange
       );
-    }).map(event => {
+    });
+
+    // 2. De-duplicate if both FT and Luma are selected
+    const shouldDeduplicate = visibleSources.includes('frontier-tower') && visibleSources.includes('luma');
+    if (shouldDeduplicate) {
+        const uniqueEvents = new Map<string, Event>();
+        filteredEvents.forEach(event => {
+            const key = `${event.name}|${event.startsAt.substring(0, 16)}`;
+            const existingEvent = uniqueEvents.get(key);
+
+            if (existingEvent) {
+                const isExistingFT = existingEvent.source === 'frontier-tower';
+                const isCurrentFT = event.source === 'frontier-tower';
+
+                if (isCurrentFT && !isExistingFT) {
+                    // Current is FT, existing is not. Replace, combining IDs.
+                    event.id = `${event.id},${existingEvent.id}`;
+                    uniqueEvents.set(key, event);
+                } else if (isExistingFT && !isCurrentFT) {
+                    // Existing is FT, current is not. Keep existing, combining IDs.
+                    existingEvent.id = `${existingEvent.id},${event.id}`;
+                }
+            } else {
+                uniqueEvents.set(key, event);
+            }
+        });
+        filteredEvents = Array.from(uniqueEvents.values());
+    }
+
+    // 3. Normalize locations
+    const eventsWithValidLocations = filteredEvents.map(event => {
         const locationIsValid = event.location && allRoomIds.has(event.location);
         if (!locationIsValid && event.location) {
           unknownLocations.add(event.location);
@@ -135,7 +168,9 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
     if (unknownLocations.size > 0 && typeof window !== 'undefined') {
       console.warn('Detected events with unknown locations:', Array.from(unknownLocations));
     }
-    return events;
+
+    return eventsWithValidLocations;
+
   }, [initialEvents, dateRange, allRoomIds, visibleSources]);
   
   const flattenedVisibleRooms = useMemo(() => {
