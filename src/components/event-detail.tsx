@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { ArrowLeft, Calendar, Clock, Link as LucidLink, MapPin, Users } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { useEffect, useState } from 'react';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 interface EventDetailProps {
   id: string;
@@ -85,6 +86,18 @@ function SingleEventCard({ event, room }: { event: Event; room: Room | null }) {
           <p key={index} className="text-lg leading-relaxed mb-2">{line}</p>
         ))}
       </CardContent>
+      {event.rawJson && (
+        <CardContent>
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="item-1">
+              <AccordionTrigger>Raw event details</AccordionTrigger>
+              <AccordionContent>
+                <pre className="whitespace-pre-wrap text-xs bg-muted p-4 rounded-md">{event.rawJson}</pre>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </CardContent>
+      )}
     </Card>
   );
 }
