@@ -12,10 +12,12 @@ export interface Event {
   id: string;
   name: string;
   description: string;
+  host: string;
   startsAt: string; // ISO 8601 string
   endsAt: string; // ISO 8601 string
   location: string;
   originalLocation: string;
   color?: string;
   source: EventSource;
+  rawJson: string;
 }

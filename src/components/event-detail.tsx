@@ -48,8 +48,8 @@ const fetchRoomsFromApi = async (): Promise<Room> => {
 function SingleEventCard({ event, room }: { event: Event; room: Room | null }) {
   const eventStart = parseISO(event.startsAt);
   const eventEnd = parseISO(event.endsAt);
-  const eventTitle = !event.originalLocation.startsWith("https://lu.ma") ? event.originalLocation : "";
-  const eventLink = event.originalLocation.startsWith("https://lu.ma") ? event.originalLocation : "";
+  const eventTitle = !event.originalLocation?.startsWith("https://lu.ma") ? event.originalLocation : "";
+  const eventLink = event.originalLocation?.startsWith("https://lu.ma") ? event.originalLocation : "";
 
   return (
     <Card className="shadow-lg mb-6">
@@ -75,6 +75,9 @@ function SingleEventCard({ event, room }: { event: Event; room: Room | null }) {
             <Clock className="h-4 w-4 text-accent"/>
             {format(eventStart, 'p')} - {format(eventEnd, 'p')}
           </span>
+          <span className="flex items-center gap-2">
+            Hosted by {event.host}
+          </span>
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -82,6 +85,7 @@ function SingleEventCard({ event, room }: { event: Event; room: Room | null }) {
           <p key={index} className="text-lg leading-relaxed mb-2">{line}</p>
         ))}
       </CardContent>
+      <textarea cols={80} rows={10} className='whitespace-pre'>{event.rawJson}</textarea>
     </Card>
   );
 }

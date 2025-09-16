@@ -114,12 +114,14 @@ async function fetchFrontierTowerEvents(): Promise<Event[]> {
           id: `ft-${event.id}`,
           name: event.name,
           description: event.description,
+          host: event.host,
           startsAt: event.startsAt,
           endsAt: event.endsAt,
           location: normalizeLocation(event.location, event.name),
           originalLocation: event.location,
           color: COLORS['frontier-tower'],
           source: 'frontier-tower',
+          rawJson: JSON.stringify(event, null, 2),
         }));
         events.push(...mappedEvents);
       }
@@ -145,6 +147,7 @@ async function fetchLumaEvents(): Promise<Event[]> {
           description: event.description || '',
           startsAt: new Date(event.start).toISOString(),
           endsAt: new Date(event.end).toISOString(),
+          host: "?",
           location: normalizeLocation(event.location, event.summary),
           originalLocation: event.location,
           color: COLORS['luma'],
@@ -188,8 +191,12 @@ export async function getEvents(): Promise<Event[]> {
   // Deduplicate events
   const uniqueEvents = new Map<string, Event>();
   allEvents.forEach(event => {
-    const key = `${event.name}|${event.startsAt}`;
+    const key = `${event.name}|${event.startsAt.substring(0,16)}`;
     const existingEvent = uniqueEvents.get(key);
+
+    if(key.includes("Coordination")) {
+      console.log(`key: ${key}, source ${event.source} existing: ${existingEvent}`);
+    }
 
     if (existingEvent) {
       // If we have a duplicate, prioritize the Frontier Tower event

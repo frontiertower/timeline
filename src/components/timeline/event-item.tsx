@@ -59,7 +59,7 @@ export function EventItem({ event, group = [] }: EventItemProps) {
     <TooltipProvider delayDuration={100}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Link href={`/events/${encodeURIComponent(eventId)}`} className="block h-full">
+          <Link href={`/events/${eventId}`} className="block h-full">
             <Card 
               className="h-full w-full hover:opacity-80 transition-opacity duration-200 shadow-md overflow-hidden"
               style={cardStyle}
