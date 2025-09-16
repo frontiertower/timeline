@@ -85,7 +85,6 @@ function SingleEventCard({ event, room }: { event: Event; room: Room | null }) {
           <p key={index} className="text-lg leading-relaxed mb-2">{line}</p>
         ))}
       </CardContent>
-      <textarea cols={80} rows={10} className='whitespace-pre'>{event.rawJson}</textarea>
     </Card>
   );
 }
