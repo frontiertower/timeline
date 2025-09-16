@@ -101,7 +101,7 @@ export function EventDetail({ id }: EventDetailProps) {
       setLoading(true);
       try {
         const decodedId = decodeURIComponent(id);
-        const eventIds = decodedId.split(',');
+        const eventIds = [...new Set(decodedId.split(','))]; // Ensure unique IDs
 
         const allEventsPromise = fetchEventsFromApi();
         const roomsDataPromise = fetchRoomsFromApi();
