@@ -140,19 +140,21 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
                 const isCurrentFT = event.source === 'frontier-tower';
 
                 if (isCurrentFT && !isExistingFT) {
-                    // Current is FT, existing is not. Replace, combining IDs.
-                    event.id = `${event.id},${existingEvent.id}`;
-                    if (event.location === 'frontier-tower') {
-                      event.location = existingEvent.location;
+                    // Current is FT, existing is Luma. Replace, combining IDs and location.
+                    const newEvent = { ...event }; // Clone to avoid mutation
+                    newEvent.id = `${event.id},${existingEvent.id}`;
+                    if (newEvent.location === 'frontier-tower') {
+                      newEvent.location = existingEvent.location;
                     }
-                    uniqueEvents.set(key, event);
+                    uniqueEvents.set(key, newEvent);
                 } else if (isExistingFT && !isCurrentFT) {
-                    // Existing is FT, current is not. Keep existing, combining IDs.
+                    // Existing is FT, current is Luma. Keep existing, combining IDs and location.
                     existingEvent.id = `${existingEvent.id},${event.id}`;
                     if (existingEvent.location === 'frontier-tower') {
                       existingEvent.location = event.location;
                     }
                 }
+                // If both are FT or both are Luma, do nothing, keep the first one.
             } else {
                 uniqueEvents.set(key, event);
             }
@@ -188,32 +190,34 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
       return visibleTree;
     }
   
-    // Always include the building if there are any events
-    if (visibleEvents.length > 0) {
-      const buildingNode = { ...initialRooms, children: initialRooms.children || [] };
-      visibleTree.push(buildingNode);
-      
-      const floors = buildingNode.children;
+    const buildingNode = { ...initialRooms, children: initialRooms.children || [] };
+    let buildingHasEvents = roomIdsWithEvents.has(buildingNode.id);
+    const visibleFloors: Room[] = [];
   
-      floors.forEach(floor => {
-        const floorHasEvent = roomIdsWithEvents.has(floor.id);
-        const roomsWithEvents = floor.children?.filter(room => roomIdsWithEvents.has(room.id)) || [];
-        const floorHasVisibleRooms = roomsWithEvents.length > 0;
+    buildingNode.children.forEach(floor => {
+      const floorHasEvent = roomIdsWithEvents.has(floor.id);
+      const roomsWithEvents = floor.children?.filter(room => roomIdsWithEvents.has(room.id)) || [];
   
-        if (floorHasEvent || floorHasVisibleRooms) {
-          visibleTree.push(floor);
-          roomsWithEvents.forEach(room => {
-            visibleTree.push(room);
-          });
+      if (floorHasEvent || roomsWithEvents.length > 0) {
+        // We need to show the floor and its visible rooms
+        const floorNode = { ...floor, children: roomsWithEvents };
+        visibleFloors.push(floorNode);
+        if (roomsWithEvents.length > 0) {
+            buildingHasEvents = true; // If a room is visible, the building must be.
         }
+      }
+    });
+  
+    // If there are any visible floors or the building itself has an event, add the building.
+    if (visibleFloors.length > 0 || buildingHasEvents) {
+      visibleTree.push(buildingNode);
+      visibleFloors.forEach(floor => {
+          visibleTree.push(floor);
+          if (floor.children) {
+              visibleTree.push(...floor.children);
+          }
       });
     }
-    
-    // If after all that, the tree is empty but there are events at the top level, show the building
-    if (visibleTree.length === 0 && roomIdsWithEvents.has('frontier-tower')) {
-        visibleTree.push({ ...initialRooms, children: [] });
-    }
-
   
     return visibleTree;
   }, [initialRooms, visibleEvents]);
@@ -235,14 +239,16 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
       />
         <div className="flex flex-col flex-1 mt-4 rounded-lg shadow-sm overflow-hidden">
             {flattenedVisibleRooms.length > 0 ? (
-                <TimelineView
-                    events={visibleEvents}
-                    dateRange={dateRange}
-                    zoom={zoom}
-                    flattenedRooms={flattenedVisibleRooms}
-                    onZoomChange={handleZoomChange}
-                    onDateChange={handleDateChange}
-                />
+                <div className="flex flex-1">
+                    <TimelineView
+                        events={visibleEvents}
+                        dateRange={dateRange}
+                        zoom={zoom}
+                        flattenedRooms={flattenedVisibleRooms}
+                        onZoomChange={handleZoomChange}
+                        onDateChange={handleDateChange}
+                    />
+                </div>
             ) : (
                 <div className="flex-1 flex items-center justify-center text-muted-foreground p-8">
                     <p>No events scheduled for this period.</p>
