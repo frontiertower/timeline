@@ -131,7 +131,7 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
     if (shouldDeduplicate) {
         const uniqueEvents = new Map<string, Event>();
         filteredEvents.forEach(event => {
-            const key = `${event.name}|${event.startsAt.substring(0, 16)}`;
+            const key = `${event.location}|${event.name}|${event.startsAt.substring(0, 13)}`;
             const existingEvent = uniqueEvents.get(key);
 
             if (existingEvent) {
@@ -141,10 +141,16 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
                 if (isCurrentFT && !isExistingFT) {
                     // Current is FT, existing is not. Replace, combining IDs.
                     event.id = `${event.id},${existingEvent.id}`;
+                    if (event.location === 'frontier-tower') {
+                      event.location = existingEvent.location;
+                    }
                     uniqueEvents.set(key, event);
                 } else if (isExistingFT && !isCurrentFT) {
                     // Existing is FT, current is not. Keep existing, combining IDs.
                     existingEvent.id = `${existingEvent.id},${event.id}`;
+                    if (existingEvent.location === 'frontier-tower') {
+                      existingEvent.location = event.location;
+                    }
                 }
             } else {
                 uniqueEvents.set(key, event);
