@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import type { Event, Room, EventSource } from '@/lib/types';
@@ -131,7 +132,7 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
     if (shouldDeduplicate) {
         const uniqueEvents = new Map<string, Event>();
         filteredEvents.forEach(event => {
-            const key = `${event.location}|${event.name}|${event.startsAt.substring(0, 13)}`;
+            const key = `${event.name}|${event.startsAt.substring(0, 13)}`;
             const existingEvent = uniqueEvents.get(key);
 
             if (existingEvent) {
@@ -186,31 +187,33 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
     if (!initialRooms) {
       return visibleTree;
     }
-
-    if (visibleEvents.length === 0) {
-      if (roomIdsWithEvents.has('frontier-tower')) {
-        visibleTree.push({ ...initialRooms, children: [] });
-      }
-      return visibleTree;
+  
+    // Always include the building if there are any events
+    if (visibleEvents.length > 0) {
+      const buildingNode = { ...initialRooms, children: initialRooms.children || [] };
+      visibleTree.push(buildingNode);
+      
+      const floors = buildingNode.children;
+  
+      floors.forEach(floor => {
+        const floorHasEvent = roomIdsWithEvents.has(floor.id);
+        const roomsWithEvents = floor.children?.filter(room => roomIdsWithEvents.has(room.id)) || [];
+        const floorHasVisibleRooms = roomsWithEvents.length > 0;
+  
+        if (floorHasEvent || floorHasVisibleRooms) {
+          visibleTree.push(floor);
+          roomsWithEvents.forEach(room => {
+            visibleTree.push(room);
+          });
+        }
+      });
     }
-  
-    const buildingNode = { ...initialRooms };
-    visibleTree.push(buildingNode);
-  
-    const floors = buildingNode.children || [];
-  
-    floors.forEach(floor => {
-      const floorHasEvent = roomIdsWithEvents.has(floor.id);
-      const roomsWithEvents = floor.children?.filter(room => roomIdsWithEvents.has(room.id)) || [];
-      const floorHasVisibleRooms = roomsWithEvents.length > 0;
-  
-      if (floorHasEvent || floorHasVisibleRooms) {
-        visibleTree.push(floor);
-        roomsWithEvents.forEach(room => {
-          visibleTree.push(room);
-        });
-      }
-    });
+    
+    // If after all that, the tree is empty but there are events at the top level, show the building
+    if (visibleTree.length === 0 && roomIdsWithEvents.has('frontier-tower')) {
+        visibleTree.push({ ...initialRooms, children: [] });
+    }
+
   
     return visibleTree;
   }, [initialRooms, visibleEvents]);
