@@ -131,6 +131,7 @@ async function fetchFrontierTowerEvents(): Promise<Event[]> {
   } catch (error) {
     console.error('Error fetching Frontier Tower events:', error);
   }
+  console.log(`Fetched ${events.length} events from Frontier Tower API.`);
   return events;
 }
 
@@ -156,6 +157,7 @@ async function fetchLumaEvents(): Promise<Event[]> {
         });
       }
     }
+    console.log(`Fetched ${mappedEvents.length} events from Luma.`)
     return mappedEvents;
   } catch (error) {
     console.error('Error fetching Luma events:', error);

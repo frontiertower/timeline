@@ -46,6 +46,28 @@ const fetchRoomsFromApi = async (): Promise<Room> => {
     return response.json();
 }
 
+const renderTextWithLinks = (text: string) => {
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const parts = text.split(urlRegex);
+
+    return parts.map((part, i) => {
+        if (part.match(urlRegex)) {
+            return (
+                <a
+                    key={i}
+                    href={part}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline"
+                >
+                    {part}
+                </a>
+            );
+        }
+        return part;
+    });
+};
+
 function SingleEventCard({ event, room }: { event: Event; room: Room | null }) {
   const eventStart = parseISO(event.startsAt);
   const eventEnd = parseISO(event.endsAt);
@@ -83,7 +105,7 @@ function SingleEventCard({ event, room }: { event: Event; room: Room | null }) {
       </CardHeader>
       <CardContent>
         {event.description.split('\n').map((line, index) => (
-          <p key={index} className="text-lg leading-relaxed mb-2">{line}</p>
+          <p key={index} className="text-lg leading-relaxed mb-2">{renderTextWithLinks(line)}</p>
         ))}
       </CardContent>
       {event.rawJson && (
