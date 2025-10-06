@@ -22,6 +22,7 @@ import {
   parseISO,
   parse,
   format,
+  differenceInMinutes
 } from 'date-fns';
 import { TimelineHeader } from './timeline-header';
 import { TimelineView } from './timeline-view';
@@ -130,36 +131,62 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
     // 2. De-duplicate if both FT and Luma are selected
     const shouldDeduplicate = visibleSources.includes('frontier-tower') && visibleSources.includes('luma');
     if (shouldDeduplicate) {
-        const uniqueEvents = new Map<string, Event>();
+        const eventsByName = new Map<string, Event[]>();
         filteredEvents.forEach(event => {
-            const key = `${event.name}|${event.startsAt.substring(0, 13)}`;
-            const existingEvent = uniqueEvents.get(key);
+            if (!eventsByName.has(event.name)) {
+                eventsByName.set(event.name, []);
+            }
+            eventsByName.get(event.name)!.push(event);
+        });
 
-            if (existingEvent) {
-                const isExistingFT = existingEvent.source === 'frontier-tower';
-                const isCurrentFT = event.source === 'frontier-tower';
+        const dedupedEvents: Event[] = [];
+        for (const [name, eventGroup] of eventsByName.entries()) {
+            if (eventGroup.length <= 1) {
+                dedupedEvents.push(...eventGroup);
+                continue;
+            }
 
-                if (isCurrentFT && !isExistingFT) {
-                    // Current is FT, existing is Luma. Replace, combining IDs and location.
-                    const newEvent = { ...event }; // Clone to avoid mutation
-                    newEvent.id = `${event.id},${existingEvent.id}`;
-                    if (newEvent.location === 'frontier-tower') {
-                      newEvent.location = existingEvent.location;
-                    }
-                    uniqueEvents.set(key, newEvent);
-                } else if (isExistingFT && !isCurrentFT) {
-                    // Existing is FT, current is Luma. Keep existing, combining IDs and location.
-                    existingEvent.id = `${existingEvent.id},${event.id}`;
-                    if (existingEvent.location === 'frontier-tower') {
-                      existingEvent.location = event.location;
+            const handledEventIds = new Set<string>();
+
+            for (let i = 0; i < eventGroup.length; i++) {
+                const eventA = eventGroup[i];
+                if (handledEventIds.has(eventA.id)) continue;
+
+                let mergedEvent: Event | null = null;
+
+                for (let j = i + 1; j < eventGroup.length; j++) {
+                    const eventB = eventGroup[j];
+                    if (handledEventIds.has(eventB.id)) continue;
+
+                    const timeDiff = Math.abs(differenceInMinutes(parseISO(eventA.startsAt), parseISO(eventB.startsAt)));
+
+                    // If same name, close start time, and from different main sources
+                    if (timeDiff <= 5 && eventA.source !== eventB.source && (eventA.source === 'frontier-tower' || eventB.source === 'frontier-tower')) {
+                        const ftEvent = eventA.source === 'frontier-tower' ? eventA : eventB;
+                        const lumaEvent = eventA.source === 'luma' ? eventA : eventB;
+
+                        mergedEvent = { ...ftEvent }; // clone FT event
+                        mergedEvent.id = `${ftEvent.id},${lumaEvent.id}`;
+                        
+                        // Use more specific location if available
+                        if (ftEvent.location === 'frontier-tower' && lumaEvent.location !== 'frontier-tower') {
+                          mergedEvent.location = lumaEvent.location;
+                        }
+
+                        handledEventIds.add(eventA.id);
+                        handledEventIds.add(eventB.id);
+                        break; 
                     }
                 }
-                // If both are FT or both are Luma, do nothing, keep the first one.
-            } else {
-                uniqueEvents.set(key, event);
+
+                if (mergedEvent) {
+                    dedupedEvents.push(mergedEvent);
+                } else {
+                    dedupedEvents.push(eventA);
+                }
             }
-        });
-        filteredEvents = Array.from(uniqueEvents.values());
+        }
+        filteredEvents = dedupedEvents;
     }
 
     // 3. Normalize locations
@@ -195,20 +222,18 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
     const visibleFloors: Room[] = [];
   
     buildingNode.children.forEach(floor => {
-      const floorHasEvent = roomIdsWithEvents.has(floor.id);
+      let floorHasEvents = roomIdsWithEvents.has(floor.id);
       const roomsWithEvents = floor.children?.filter(room => roomIdsWithEvents.has(room.id)) || [];
   
-      if (floorHasEvent || roomsWithEvents.length > 0) {
-        // We need to show the floor and its visible rooms
+      if (floorHasEvents || roomsWithEvents.length > 0) {
         const floorNode = { ...floor, children: roomsWithEvents };
         visibleFloors.push(floorNode);
-        if (roomsWithEvents.length > 0) {
-            buildingHasEvents = true; // If a room is visible, the building must be.
+        if (roomsWithEvents.length > 0 || floorHasEvents) {
+            buildingHasEvents = true; 
         }
       }
     });
   
-    // If there are any visible floors or the building itself has an event, add the building.
     if (visibleFloors.length > 0 || buildingHasEvents) {
       visibleTree.push(buildingNode);
       visibleFloors.forEach(floor => {
