@@ -1,8 +1,9 @@
+
 'use client';
 
 import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { ChevronLeft, ChevronRight, HelpCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, HelpCircle, List } from 'lucide-react';
 import { format, isSameMonth } from 'date-fns';
 import { FrontierTowerLogo } from '../icons';
 import Link from 'next/link';
@@ -115,12 +116,18 @@ export function TimelineHeader({
                 <Label htmlFor="ft-checkbox">FrontierTower</Label>
             </div>
              <div className="flex items-center space-x-2">
-                <Checkbox id="luma-checkbox" checked={visibleSources.includes('luma')} onCheckedChange={(checked) => handleSourceChange('luma', !!checked)} style={{'--checkbox-color': 'hsl(140 50% 60%)'} as React.CSSProperties}/>
+                <Checkbox id="luma-checkbox" checked={visibleSources.includes('luma')} onCheckedChange={(checked) => handleSourceChange('luma', !!checked)} style={{'--checkbox-color': 'hsl(0 100% 60%)'} as React.CSSProperties}/>
                 <Label htmlFor="luma-checkbox">Luma</Label>
             </div>
         </div>
 
-        <Button asChild variant="outline" size="icon">
+        <Button asChild variant="outline" size="icon" title="List View">
+          <Link href="/?view=list">
+            <List className="h-4 w-4" />
+          </Link>
+        </Button>
+
+        <Button asChild variant="outline" size="icon" title="About">
           <Link href="/readme">
             <HelpCircle className="h-4 w-4" />
           </Link>

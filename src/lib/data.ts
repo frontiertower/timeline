@@ -9,7 +9,7 @@ const FRONTIER_TOWER_API_URL = 'https://api.berlinhouse.com/events/';
 
 const COLORS: Record<EventSource, string> = {
   'frontier-tower': 'hsl(259 80% 70%)', // primary purple
-  'luma': 'hsl(140 50% 60%)', // green
+  'luma': 'hsl(0 100% 60%)', // red
   'mock': 'hsl(240 4.8% 95.9%)', // Muted gray
 };
 

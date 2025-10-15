@@ -1,12 +1,14 @@
+
 import { TimelineContainer } from '@/components/timeline/timeline-container';
 import { Suspense } from 'react';
 import type { Room, Event } from '@/lib/types';
 import { getRooms, getEvents } from '@/lib/data';
+import { EventListContainer } from '@/components/event-list';
 
 function TimelineLoading() {
     return (
         <div className="flex-1 flex items-center justify-center text-muted-foreground">
-            <p>Loading timeline...</p>
+            <p>Loading...</p>
         </div>
     )
 }
@@ -17,16 +19,26 @@ async function fetchTimelineData(): Promise<{ roomsTree: Room, events: Event[] }
     return { roomsTree, events };
 }
 
-
 export const dynamic = 'force-dynamic';
 
-export default async function HomePage() {
+interface HomePageProps {
+  searchParams?: {
+    view?: string;
+  };
+}
+
+export default async function HomePage({ searchParams }: HomePageProps) {
   const { roomsTree, events } = await fetchTimelineData();
+  const isListView = searchParams?.view === 'list';
 
   return (
-    <main className="bg-background">
+    <main className="bg-background p-4">
       <Suspense fallback={<TimelineLoading />}>
-        <TimelineContainer initialRooms={roomsTree} initialEvents={events} />
+        {isListView ? (
+          <EventListContainer initialRooms={roomsTree} initialEvents={events} />
+        ) : (
+          <TimelineContainer initialRooms={roomsTree} initialEvents={events} />
+        )}
       </Suspense>
     </main>
   );

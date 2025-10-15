@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import type { Event, Room, EventSource } from '@/lib/types';
@@ -65,7 +64,11 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
 
   useEffect(() => {
     if (isMounted) {
-        const newUrl = `/?zoom=${zoom}&from=${format(currentDate, 'yyyy-MM-dd')}&sources=${visibleSources.join(',')}`;
+        const queryParams = new URLSearchParams();
+        queryParams.set('zoom', zoom);
+        queryParams.set('from', format(currentDate, 'yyyy-MM-dd'));
+        queryParams.set('sources', visibleSources.join(','));
+        const newUrl = `/?${queryParams.toString()}`;
         window.history.pushState({}, '', newUrl);
     }
   }, [zoom, currentDate, visibleSources, isMounted]);
@@ -140,12 +143,7 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
         });
 
         const dedupedEvents: Event[] = [];
-        for (const [name, eventGroup] of eventsByName.entries()) {
-            if (eventGroup.length <= 1) {
-                dedupedEvents.push(...eventGroup);
-                continue;
-            }
-
+        for (const eventGroup of eventsByName.values()) {
             const handledEventIds = new Set<string>();
 
             for (let i = 0; i < eventGroup.length; i++) {
@@ -169,7 +167,7 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
                         mergedEvent.id = `${ftEvent.id},${lumaEvent.id}`;
                         
                         // Use more specific location if available
-                        if (ftEvent.location === 'frontier-tower' && lumaEvent.location !== 'frontier-tower') {
+                        if ((!ftEvent.location || ftEvent.location === 'frontier-tower') && lumaEvent.location && lumaEvent.location !== 'frontier-tower') {
                           mergedEvent.location = lumaEvent.location;
                         }
 
@@ -181,7 +179,7 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
 
                 if (mergedEvent) {
                     dedupedEvents.push(mergedEvent);
-                } else {
+                } else if (!handledEventIds.has(eventA.id)) {
                     dedupedEvents.push(eventA);
                 }
             }
