@@ -4,7 +4,7 @@
 import type { Event, Room, EventSource } from '@/lib/types';
 import { useState, useMemo, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { areIntervalsOverlapping, parseISO, parse, format, differenceInMinutes, startOfToday, endOfToday, compareAsc } from 'date-fns';
+import { areIntervalsOverlapping, parseISO, parse, format, differenceInMinutes, startOfToday, endOfToday, compareAsc, isBefore } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -59,7 +59,11 @@ function EventListContainerComponent({ initialRooms, initialEvents }: EventListC
   }, [initialRooms]);
 
   const processedEvents = useMemo(() => {
-    let filteredEvents = initialEvents.filter(event => visibleSources.includes(event.source));
+    const today = startOfToday();
+    let filteredEvents = initialEvents
+        .filter(event => visibleSources.includes(event.source))
+        .filter(event => !isBefore(parseISO(event.endsAt), today));
+
 
     const shouldDeduplicate = visibleSources.includes('frontier-tower') && visibleSources.includes('luma');
     if (shouldDeduplicate) {
