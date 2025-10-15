@@ -1,9 +1,11 @@
 
+'use client';
+
 import { TimelineContainer } from '@/components/timeline/timeline-container';
-import { Suspense } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import type { Room, Event } from '@/lib/types';
-import { getRooms, getEvents } from '@/lib/data';
 import { EventListContainer } from '@/components/event-list';
+import { useSearchParams } from 'next/navigation';
 
 function TimelineLoading() {
     return (
@@ -14,30 +16,58 @@ function TimelineLoading() {
 }
 
 async function fetchTimelineData(): Promise<{ roomsTree: Room, events: Event[] }> {
-    const roomsTree = await getRooms();
-    const events = await getEvents();
+    const roomsResponse = await fetch('/api/rooms');
+    const eventsResponse = await fetch('/api/events');
+    
+    if (!roomsResponse.ok || !eventsResponse.ok) {
+        throw new Error('Failed to fetch timeline data');
+    }
+    
+    const roomsTree = await roomsResponse.json();
+    const events = await eventsResponse.json();
+
     return { roomsTree, events };
 }
 
 export const dynamic = 'force-dynamic';
 
-interface HomePageProps {
-  searchParams?: {
-    view?: string;
-  };
-}
+export default function HomePage() {
+  const [data, setData] = useState<{ roomsTree: Room, events: Event[] } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const searchParams = useSearchParams();
+  const isListView = searchParams.get('view') === 'list';
 
-export default async function HomePage({ searchParams }: HomePageProps) {
-  const { roomsTree, events } = await fetchTimelineData();
-  const isListView = searchParams?.view === 'list';
+  useEffect(() => {
+    async function loadData() {
+      try {
+        setLoading(true);
+        const fetchedData = await fetchTimelineData();
+        setData(fetchedData);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
+
+  if (loading || !data) {
+    return (
+        <main className="bg-background p-4 h-screen flex">
+            <TimelineLoading />
+        </main>
+    );
+  }
 
   return (
     <main className="bg-background p-4">
       <Suspense fallback={<TimelineLoading />}>
         {isListView ? (
-          <EventListContainer initialRooms={roomsTree} initialEvents={events} />
+          <EventListContainer initialRooms={data.roomsTree} initialEvents={data.events} />
         ) : (
-          <TimelineContainer initialRooms={roomsTree} initialEvents={events} />
+          <TimelineContainer initialRooms={data.roomsTree} initialEvents={data.events} />
         )}
       </Suspense>
     </main>
