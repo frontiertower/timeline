@@ -31,7 +31,7 @@ async function fetchTimelineData(): Promise<{ roomsTree: Room, events: Event[] }
 
 export const dynamic = 'force-dynamic';
 
-export default function HomePage() {
+function HomePageContent() {
   const [data, setData] = useState<{ roomsTree: Room, events: Event[] } | null>(null);
   const [loading, setLoading] = useState(true);
   const searchParams = useSearchParams();
@@ -63,13 +63,19 @@ export default function HomePage() {
 
   return (
     <main className="bg-background p-4">
-      <Suspense fallback={<TimelineLoading />}>
-        {isListView ? (
-          <EventListContainer initialRooms={data.roomsTree} initialEvents={data.events} />
-        ) : (
-          <TimelineContainer initialRooms={data.roomsTree} initialEvents={data.events} />
-        )}
-      </Suspense>
+      {isListView ? (
+        <EventListContainer initialRooms={data.roomsTree} initialEvents={data.events} />
+      ) : (
+        <TimelineContainer initialRooms={data.roomsTree} initialEvents={data.events} />
+      )}
     </main>
   );
+}
+
+export default function HomePage() {
+  return (
+    <Suspense fallback={<TimelineLoading />}>
+      <HomePageContent />
+    </Suspense>
+  )
 }
