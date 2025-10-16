@@ -19,7 +19,7 @@ export function RoomList({ flattenedRooms }: RoomListProps) {
                 className="flex items-center gap-2 h-12 px-2 text-sm border-b"
                 style={{ paddingLeft: '2rem' }}
               >
-                  <DoorOpen className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  <DoorOpen color="hsl(259 80% 70%)" className="h-4 w-4 shrink-0 text-muted-foreground" />
                   <span className="truncate">{room.name}</span>
               </div>
             )
@@ -33,8 +33,8 @@ export function RoomList({ flattenedRooms }: RoomListProps) {
 
           return (
             <div key={room.id} className={cn("flex items-center gap-2 p-2 h-12 border-b", rowStyle)} style={{paddingLeft: padding}}>
-              {room.type === 'building' && <Building className="h-5 w-5 shrink-0" />}
-              {room.type === 'floor' && <ChevronRight className="h-4 w-4 shrink-0" />}
+              {room.type === 'building' && <Building color="hsl(259 80% 70%)" className="h-5 w-5 shrink-0" />}
+              {room.type === 'floor' && <ChevronRight color="hsl(259 80% 70%)" className="h-4 w-4 shrink-0" />}
               <span className="truncate">{room.name}</span>
             </div>
           )
@@ -47,7 +47,7 @@ export function RoomList({ flattenedRooms }: RoomListProps) {
   return (
     <div className="w-64 bg-card sticky left-0 z-20 shrink-0 shadow-md">
       <div className="h-12 flex items-center p-2 text-sm font-medium sticky top-0 bg-card z-10 border-b">
-         <Building className="h-4 w-4 mr-2"/> Location
+        Location
       </div>
        {renderRoomRows(flattenedRooms)}
     </div>
