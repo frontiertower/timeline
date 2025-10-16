@@ -146,8 +146,13 @@ function EventListContainerComponent({ initialRooms, initialEvents }: EventListC
         <div className="flex items-center gap-3 self-start md:self-center">
             <FrontierTowerLogo className="h-8 w-8 text-primary" />
             <div>
-            <h1 className="text-2xl font-headline text-foreground">Frontier Tower Events</h1>
-             <p className="text-sm text-muted-foreground">List View</p>
+            <h1 className="text-2xl font-headline text-foreground">Frontier Tower Event List</h1>
+             <p className="text-sm text-muted-foreground">
+            (
+            <Link href="https://ft0.sh/timeline?view=list" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+              ft0.sh/timeline?view=list
+            </Link>
+            )</p>
             </div>
         </div>
         <div className="flex flex-col sm:flex-row items-center gap-4 flex-wrap justify-center">
