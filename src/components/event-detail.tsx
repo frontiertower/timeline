@@ -75,7 +75,7 @@ function SingleEventCard({ event, room }: { event: Event; room: Room | null }) {
   const eventLink = event.originalLocation?.startsWith("https://lu.ma") ? event.originalLocation : "";
 
   return (
-    <Card className="shadow-lg mb-6">
+    <Card className="shadow-lg mb-6" style={{ borderLeft: `4px solid ${event.color}`}}>
       <CardHeader>
         <CardTitle className="text-3xl font-headline">{event.name}</CardTitle>
         <CardDescription className="text-base pt-4 flex flex-col sm:flex-row sm:items-center flex-wrap gap-x-6 gap-y-2">

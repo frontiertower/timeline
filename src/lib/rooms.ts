@@ -86,12 +86,11 @@ export const rooms: Room = {
         ]
     },
     {
-        id: 'floor-14',
-        name: '14 - Human Flourishing',
+        id: 'floor-11',
+        name: '11 - Longevity & Health',
         type: 'floor',
         parentId: 'frontier-tower',
         children: [
-          { id: 'f14r1', name: 'Lounge', type: 'room', parentId: 'floor-14' },
         ]
     },
     {
@@ -100,6 +99,15 @@ export const rooms: Room = {
         type: 'floor',
         parentId: 'frontier-tower',
         children: [
+        ]
+    },
+    {
+        id: 'floor-14',
+        name: '14 - Human Flourishing',
+        type: 'floor',
+        parentId: 'frontier-tower',
+        children: [
+          { id: 'f14r1', name: 'Lounge', type: 'room', parentId: 'floor-14' },
         ]
     },
     {

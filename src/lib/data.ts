@@ -20,6 +20,8 @@ const CACHE_DURATION_MS = 10 * 60 * 1000; // 10m
 
 const locationNameMapping: Record<string, string> = {
     // Luma variations first
+    "2121 larimer st, denver, co 80205, usa": "frontier-tower",
+    "466 eddy st, san francisco, ca 94109, usa": "frontier-tower",
     "995 market st, san francisco, ca 94103, usa": "frontier-tower",
     "995 market st, san francisco, california": "frontier-tower",
     "995 market street, sf @ spaceship / floor 2": "f2r1",
@@ -35,16 +37,22 @@ const locationNameMapping: Record<string, string> = {
     "frontier tower @ ethereum house 995 market street, san francisco": "floor-12",
     "frontier tower @ floor 16 lounge | berlinhouse, 995 market street, san francisco": "f16r1",
     "frontier tower @ floor14 995 market street, san francisco": "floor-14",
+    "frontier tower @ frontier maker space 995 market street, san francisco": "floor-7",
     "frontier tower @ frontier makerspace / floor 7 995 market street, san francisco": "floor-7",
     "frontier tower @ hard tech & robotics 995 market street, san francisco": "floor-4",
     "frontier tower @ human flourishing 995 market street, san francisco": "floor-14",
+    "frontier tower @ longevity / floor 11 995 market street, san francisco": "floor-11",
     "frontier tower @ longevity & health 995 market street, san francisco": "frontier-tower",
     "frontier tower @ lounge / floor 14 995 market street, san francisco": "f14r1",
     "frontier tower @ lounge / floor 16 995 market street, san francisco": "f16r1",
     "frontier tower @ lounge / floor 16 995 market street, sf": "f16r1",
+    "frontier tower @ makerspace / floor 7 995 market street, san francisco": "floor-7",
     "frontier tower @ rooftop 995 market street, san francisco": "floor-17",
     "frontier tower @ spaceship / floor 2 995 market street, san francisco": "f2r1",
+    "frontier tower @floor 14 995 market street, san francisco": "floor-14",
     "frontier tower @floor 7 995 market street, san francisco": "floor-7",
+    "frontier tower @floor14 995 market street, san francisco": "floor-14",
+    "frontier tower @rooftop 995 market street, san francisco": "floor-17",
     "frontier tower / floor 2 995 market street, san francisco": "floor-2",
     "frontier tower \\ floor 14 @ 995 market street, san francisco": "floor-14",
     "frontier tower | berlinhouse fl 7 — makerspace": "floor-7",
@@ -53,17 +61,36 @@ const locationNameMapping: Record<string, string> = {
     "frontier tower floor 14 995 market street, san francisco": "floor-14",
 
     // frontier tower api exact matches
+    "basement": "floor-0",
     "floor_2": "floor-2",
+    "floor 7 - makerspace": "floor-7",
     "floor_16": "floor-16",
     "blue_room": "f15r2",
+
+    // displayLocation matches for location == 'my_community'
+    "artificial intelligence @ 995 market street, san francisco": "floor-9",
+    "berlinhouse builders @ 995 market street, san francisco": "floor-16",
+    "biotech @ 995 market street, san francisco": "floor-8",
+    "ethereum house @ 995 market street, san francisco": "floor-12",
+    "frontier maker space @ 995 market street, san francisco": "floor-7",
+    "hard tech & robotics @ 995 market street, san francisco": "floor-4",
+    "human flourishing @ 995 market street, san francisco": "floor-14",
+    "longevity & health @ 995 market street, san francisco": "floor-11",
 };
 
-function normalizeLocation(location: string | null | undefined, name: string | null | undefined): string {
+function normalizeLocation(location: string | null | undefined, name: string | null | undefined, displayLocation: string | null | undefined, ): string {
     if (!location) {
         return 'frontier-tower';
     }
 
-    const lowerCaseLocation = location.toLowerCase();
+    let lowerCaseLocation = location.toLowerCase();
+    if (lowerCaseLocation === 'my_community') {
+      if (displayLocation) {
+        lowerCaseLocation = displayLocation.toLowerCase();
+      } else {
+        return 'frontier-tower';
+      }
+    }
 
     // Check for exact matches in the mapping first
     if (locationNameMapping[lowerCaseLocation]) {
@@ -77,6 +104,9 @@ function normalizeLocation(location: string | null | undefined, name: string | n
         }
     }
 
+    if (location.indexOf('luma') === -1) {
+       console.warn(`No exact match found for location: ${location}, name: ${name}, displayLocation: ${displayLocation}`)
+    }
     return 'frontier-tower'; // Default if no match is found
 }
 
@@ -117,7 +147,7 @@ async function fetchFrontierTowerEvents(): Promise<Event[]> {
           host: event.host,
           startsAt: event.startsAt,
           endsAt: event.endsAt,
-          location: normalizeLocation(event.location, event.name),
+          location: normalizeLocation(event.location, event.name, event.displayLocation),
           originalLocation: event.location,
           color: COLORS['frontier-tower'],
           source: 'frontier-tower',
