@@ -16,7 +16,7 @@ const COLORS: Record<EventSource, string> = {
 // In-memory cache for events
 let cachedEvents: Event[] | null = null;
 let lastFetchTimestamp: number | null = null;
-const CACHE_DURATION_MS = 1000; // 10m
+const CACHE_DURATION_MS = 10 * 60 * 1000; // 10m
 
 const locationNameMapping: Record<string, string> = {
     // Luma variations first
