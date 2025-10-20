@@ -16,7 +16,7 @@ const COLORS: Record<EventSource, string> = {
 // In-memory cache for events
 let cachedEvents: Event[] | null = null;
 let lastFetchTimestamp: number | null = null;
-const CACHE_DURATION_MS = 10 * 60 * 1000; // 10m
+const CACHE_DURATION_MS = 1000; // 10m
 
 const locationNameMapping: Record<string, string> = {
     // Luma variations first
@@ -165,6 +165,17 @@ async function fetchFrontierTowerEvents(): Promise<Event[]> {
   return events;
 }
 
+function extractLumaHost(description?: string): string {
+    if (!description) return '?';
+    const hostMarker = 'Hosted by ';
+    const hostIndex = description.lastIndexOf(hostMarker);
+    if (hostIndex === -1) return '?';
+    
+    const hostText = description.substring(hostIndex + hostMarker.length);
+    const lines = hostText.split('\n');
+    return lines[0].trim() || '?';
+}
+
 async function fetchLumaEvents(): Promise<Event[]> {
   try {
     const events = await ical.async.fromURL(LUMA_URL);
@@ -178,8 +189,8 @@ async function fetchLumaEvents(): Promise<Event[]> {
           description: event.description || '',
           startsAt: new Date(event.start).toISOString(),
           endsAt: new Date(event.end).toISOString(),
-          host: "?",
-          location: normalizeLocation(event.location, event.summary),
+          host: extractLumaHost(event.description),
+          location: normalizeLocation(event.location, event.summary, undefined),
           originalLocation: event.location,
           color: COLORS['luma'],
           source: 'luma',
