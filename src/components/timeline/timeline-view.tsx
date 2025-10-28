@@ -222,7 +222,7 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
     <ScrollArea className="w-full rounded-b-lg">
       <div className="flex relative">
         <RoomList flattenedRooms={flattenedRooms} />
-        <div className="flex-1 relative overflow-hidden" ref={scrollContainerRef}>
+        <div className="flex-1 relative" ref={scrollContainerRef}>
           {/* Header */}
           {zoom === 'day' ? <DayViewHeader /> : <OtherViewHeader />}
 
