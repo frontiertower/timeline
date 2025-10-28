@@ -36,7 +36,7 @@ interface TimelineViewProps {
 
 // Group events that occur in the same room and overlap in time
 function groupOverlappingEvents(events: Event[]): (Event | (Event & { group: Event[] }))[] {
-    const sortedEvents = [...events].sort((a, b) => parseISO(a.startsAt).getTime() - parseISO(b.startsAt).getTime());
+    const sortedEvents = [...events].sort((a, b) => parseISO(a.startsAt).getTime() - parseISO(b).startsAt).getTime());
     const eventGroups: Map<string, Event[]> = new Map();
 
     for (const event of sortedEvents) {
@@ -126,30 +126,8 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
     if (!scrollEl) return;
   
     const timer = setTimeout(() => {
-      const today = new Date();
-      const todayIsVisible = isWithinInterval(today, dateRange);
-  
-      if (!todayIsVisible) return;
-  
-      let targetSlotIndex = -1;
-  
-      if (zoom === 'day') {
-        const currentMinute = getHours(today) * 60 + getMinutes(today);
-        targetSlotIndex = Math.floor(currentMinute / 30);
-      } else { // week or month
-        targetSlotIndex = timeSlots.findIndex(slot => isSameDay(slot.date, today));
-      }
-  
-      if (targetSlotIndex !== -1) {
-        const totalSlots = timeSlots.length;
-        if (totalSlots === 0 || scrollEl.scrollWidth === 0) return;
-
-        const slotWidth = scrollEl.scrollWidth / totalSlots;
-        // Scroll to center the target slot
-        const scrollPosition = (targetSlotIndex * slotWidth) - (scrollEl.clientWidth / 2) + (slotWidth / 2);
-        scrollEl.scrollLeft = Math.max(0, scrollPosition);
-      }
-    }, 100);
+      scrollEl.scrollLeft = scrollEl.scrollWidth;
+    }, 100); 
   
     return () => clearTimeout(timer);
   }, [zoom, dateRange, timeSlots.length]);
@@ -229,10 +207,10 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
             const isPast = isBefore(date, startOfToday()) && !isToday(date);
             return (
                 <div key={label + date.toString()} className={cn(
-                    "flex-shrink-0 text-center p-2 text-sm font-medium text-muted-foreground h-12 flex items-center justify-center border-b border-r",
+                    "flex-shrink-0 text-center p-2 text-sm font-medium h-12 flex items-center justify-center border-b border-r",
                     (zoom === 'week' || zoom === 'month') && "cursor-pointer hover:bg-muted",
                     isToday(date) && "font-bold text-primary",
-                    isPast && "text-muted-foreground/50"
+                    isPast ? "text-muted-foreground/50" : "text-muted-foreground"
                 )}
                     onClick={() => handleTimeSlotClick(date)}
                 >
@@ -246,17 +224,17 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
   const gridWidth = zoom === 'day' ? '96rem' : zoom === 'week' ? '56rem' : '124rem';
 
   return (
-    <div className="flex flex-1 border-t overflow-hidden">
+    <div className="flex flex-1 border-t">
       <RoomList flattenedRooms={flattenedRooms} />
       <div className="flex-1 min-w-0">
-        <ScrollArea className="h-full" ref={scrollContainerRef}>
+        <ScrollArea className="h-full" viewportRef={scrollContainerRef}>
           <div className="relative" style={{ width: gridWidth }}>
             <div className="sticky top-0 z-10 bg-card">
               {zoom === 'day' ? <DayViewHeader /> : <OtherViewHeader />}
             </div>
             
             <div className="grid" style={{ gridTemplateColumns: getGridTemplateColumns() }}>
-              {flattenedRooms.map((room, roomIndex) => (
+              {flattenedRooms.map((room) => (
                 <div
                   key={room.id}
                   className="grid h-12"
@@ -305,3 +283,5 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
     </div>
   );
 }
+
+    
