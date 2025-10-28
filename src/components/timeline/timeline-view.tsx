@@ -105,10 +105,10 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
   const getTimeSlots = () => {
     switch (zoom) {
       case 'day':
-        return eachHourOfInterval(dateRange).map(hour => ({
-          label: format(hour, 'ha'),
-          date: hour,
-        }));
+        return eachHourOfInterval(dateRange).flatMap(hour => [
+          { label: format(hour, 'ha'), date: hour },
+          { label: '', date: new Date(hour.getTime() + 30 * 60000) }
+        ]);
       case 'week':
         return eachDayOfInterval(dateRange).map(day => ({
           label: format(day, 'EEE d'),
@@ -125,17 +125,28 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
 
   useEffect(() => {
     const scrollEl = scrollContainerRef.current;
-    if (zoom === 'month' && scrollEl) {
+    if (!scrollEl) return;
+
+    if (zoom === 'month') {
         const today = new Date();
         // Check if the current month is being viewed
         if (isSameMonth(today, dateRange.start)) {
             const dayIndex = getDate(today) - 1; // 0-indexed
             const totalDays = timeSlots.length;
-            if (scrollEl.scrollWidth > scrollEl.clientWidth) {
-              const scrollPosition = (scrollEl.scrollWidth - scrollEl.clientWidth) * (dayIndex / totalDays);
-              scrollEl.scrollLeft = Math.max(0, scrollPosition);
-            }
+            const dayWidth = scrollEl.scrollWidth / totalDays;
+            
+            const scrollPosition = dayIndex * dayWidth;
+            scrollEl.scrollLeft = Math.max(0, scrollPosition - dayWidth); // Show a bit before today
         }
+    } else if (zoom === 'day') {
+      const now = new Date();
+      if (isSameDay(now, dateRange.start)) {
+        const currentHour = getHours(now);
+        const totalHours = 24;
+        const hourWidth = scrollEl.scrollWidth / totalHours;
+        const scrollPosition = currentHour * hourWidth;
+        scrollEl.scrollLeft = Math.max(0, scrollPosition - hourWidth);
+      }
     }
   }, [zoom, dateRange, timeSlots]);
 
@@ -148,7 +159,7 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
     const end = new Date(event.endsAt);
 
     let gridColumnStart, gridColumnEnd;
-    const totalColumns = zoom === 'day' ? 48 : timeSlots.length;
+    const totalColumns = timeSlots.length;
 
     switch (zoom) {
       case 'day':
@@ -200,10 +211,9 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
   
   const DayViewHeader = () => (
     <div className="grid sticky top-0 z-10 bg-card" style={{ gridTemplateColumns: `repeat(24, minmax(4rem, 1fr))` }}>
-      {timeSlots.map(({ label, date }) => (
-        <div key={label} className="flex-shrink-0 text-center p-2 text-sm font-medium text-muted-foreground h-12 flex items-center justify-center border-b relative">
-            {label}
-            <Separator orientation="vertical" className="absolute right-0 top-1/4 h-1/2 bg-border/50" />
+      {eachHourOfInterval({start: dateRange.start, end: dateRange.end}).map((hour) => (
+        <div key={hour.toString()} className="flex-shrink-0 text-center p-2 text-sm font-medium text-muted-foreground h-12 flex items-center justify-center border-b border-r">
+            {format(hour, 'ha')}
         </div>
       ))}
     </div>
@@ -214,8 +224,8 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
         {timeSlots.map(({ label, date }) => {
             const isPast = isBefore(date, startOfToday()) && !isToday(date);
             return (
-                <div key={label} className={cn(
-                    "flex-shrink-0 text-center p-2 text-sm font-medium text-muted-foreground h-12 flex items-center justify-center border-b",
+                <div key={label + date.toString()} className={cn(
+                    "flex-shrink-0 text-center p-2 text-sm font-medium text-muted-foreground h-12 flex items-center justify-center border-b border-r",
                     (zoom === 'week' || zoom === 'month') && "cursor-pointer hover:bg-muted",
                     isToday(date) && "font-bold text-primary",
                     isPast && "text-muted-foreground/50"
@@ -229,17 +239,25 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
     </div>
   )
 
+  const gridWidth = zoom === 'day' ? '96rem' : zoom === 'week' ? '56rem' : '124rem';
+
   return (
       <div className="absolute inset-0 flex">
         <RoomList flattenedRooms={flattenedRooms} />
         <div className="flex-1 min-w-0">
           <ScrollArea className="h-full" ref={scrollContainerRef}>
-            <div className="relative">
+            <div className="relative" style={{ width: gridWidth }}>
               {/* Header */}
               {zoom === 'day' ? <DayViewHeader /> : <OtherViewHeader />}
 
               {/* Grid and Events */}
               <div className="grid" style={{ gridTemplateColumns: getGridTemplateColumns(), gridTemplateRows: `repeat(${flattenedRooms.length}, 3rem)` }}>
+                  {/* Grid lines */}
+                  {flattenedRooms.map(room => 
+                      timeSlots.map((slot, index) => (
+                          <div key={`${room.id}-${index}`} className="h-12 border-b border-r"></div>
+                      ))
+                  )}
 
                   {processedEvents.map(event => {
                       const position = getEventGridPosition(event);
@@ -251,7 +269,7 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
                       return (
                           <div 
                             key={event.id} 
-                            style={{ gridRow: position.gridRow -1, gridColumn: position.gridColumn }} 
+                            style={{ gridRow: position.gridRow - 1, gridColumn: position.gridColumn }} 
                             className="p-1 h-12 relative"
                           >
                               <EventItem event={event} group={groupedEvent.group} />
@@ -266,3 +284,5 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
       </div>
   );
 }
+
+    
