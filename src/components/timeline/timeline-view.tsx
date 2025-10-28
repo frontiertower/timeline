@@ -22,7 +22,6 @@ import {
 } from 'date-fns';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
-import { Separator } from '../ui/separator';
 import { useMemo, useRef, useEffect } from 'react';
 
 type ZoomLevel = 'day' | 'week' | 'month';
@@ -242,16 +241,16 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
   const gridWidth = zoom === 'day' ? '96rem' : zoom === 'week' ? '56rem' : '124rem';
 
   return (
-      <div className="absolute inset-0 flex">
+      <div className="flex-1 flex overflow-hidden">
         <RoomList flattenedRooms={flattenedRooms} />
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 overflow-hidden">
           <ScrollArea className="h-full" ref={scrollContainerRef}>
             <div className="relative" style={{ width: gridWidth }}>
               {/* Header */}
               {zoom === 'day' ? <DayViewHeader /> : <OtherViewHeader />}
 
               {/* Grid and Events */}
-              <div className="grid" style={{ gridTemplateColumns: getGridTemplateColumns(), gridTemplateRows: `repeat(${flattenedRooms.length}, 3rem)` }}>
+              <div className="grid" style={{ gridTemplateColumns: getGridTemplateColumns() }}>
                   {/* Grid lines */}
                   {flattenedRooms.map(room => 
                       timeSlots.map((slot, index) => (
@@ -284,5 +283,3 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
       </div>
   );
 }
-
-    
