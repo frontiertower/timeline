@@ -251,7 +251,7 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
   }
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col">
       <TimelineHeader
         zoom={zoom}
         onZoomChange={handleZoomChange}
@@ -260,7 +260,7 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
         visibleSources={visibleSources}
         onVisibleSourcesChange={setVisibleSources}
       />
-        <div className="flex-1 mt-4 rounded-lg shadow-sm relative">
+        <div className="flex-1 mt-4 rounded-lg shadow-sm">
             {flattenedVisibleRooms.length > 0 ? (
                 <TimelineView
                     events={visibleEvents}
@@ -288,5 +288,3 @@ export function TimelineContainer(props: TimelineContainerProps) {
         </Suspense>
     )
 }
-
-    
