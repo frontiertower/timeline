@@ -125,29 +125,36 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
   useEffect(() => {
     const scrollEl = scrollContainerRef.current;
     if (!scrollEl) return;
-
-    if (zoom === 'month') {
+  
+    // Use a short delay to allow the browser to paint the new layout
+    const timer = setTimeout(() => {
+      if (zoom === 'month') {
         const today = new Date();
-        // Check if the current month is being viewed
         if (isSameMonth(today, dateRange.start)) {
-            const dayIndex = getDate(today) - 1; // 0-indexed
-            const totalDays = timeSlots.length;
+          const dayIndex = getDate(today) - 1; // 0-indexed
+          const totalDays = timeSlots.length;
+          if (totalDays > 0) {
             const dayWidth = scrollEl.scrollWidth / totalDays;
-            
             const scrollPosition = dayIndex * dayWidth;
-            scrollEl.scrollLeft = Math.max(0, scrollPosition - dayWidth); // Show a bit before today
+            scrollEl.scrollLeft = Math.max(0, scrollPosition - (scrollEl.clientWidth / 2) + (dayWidth / 2));
+          }
         }
-    } else if (zoom === 'day') {
-      const now = new Date();
-      if (isSameDay(now, dateRange.start)) {
-        const currentHour = getHours(now);
-        const totalHours = 24;
-        const hourWidth = scrollEl.scrollWidth / totalHours;
-        const scrollPosition = currentHour * hourWidth;
-        scrollEl.scrollLeft = Math.max(0, scrollPosition - hourWidth);
+      } else if (zoom === 'day') {
+        const now = new Date();
+        if (isSameDay(now, dateRange.start)) {
+          const currentHour = getHours(now) + getMinutes(now) / 60;
+          const totalHours = 24;
+          if (totalHours > 0) {
+            const hourWidth = scrollEl.scrollWidth / totalHours;
+            const scrollPosition = currentHour * hourWidth;
+            scrollEl.scrollLeft = Math.max(0, scrollPosition - (scrollEl.clientWidth / 2) + (hourWidth / 2));
+          }
+        }
       }
-    }
-  }, [zoom, dateRange, timeSlots]);
+    }, 100); // 100ms delay
+  
+    return () => clearTimeout(timer);
+  }, [zoom, dateRange.start, timeSlots.length]);
 
 
   const getEventGridPosition = (event: Event) => {
@@ -241,9 +248,9 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
   const gridWidth = zoom === 'day' ? '96rem' : zoom === 'week' ? '56rem' : '124rem';
 
   return (
-      <div className="flex-1 flex overflow-hidden">
+    <div className="flex flex-1 border-t">
         <RoomList flattenedRooms={flattenedRooms} />
-        <div className="flex-1 min-w-0 overflow-hidden">
+        <div className="flex-1 min-w-0">
           <ScrollArea className="h-full" ref={scrollContainerRef}>
             <div className="relative" style={{ width: gridWidth }}>
               {/* Header */}
@@ -283,3 +290,4 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
       </div>
   );
 }
+
