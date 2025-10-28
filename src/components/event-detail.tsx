@@ -68,11 +68,19 @@ const renderTextWithLinks = (text: string) => {
     });
 };
 
+const getLocationUrl = (id: string) => {
+  if (id === 'frontier-tower') {
+    return 'https://www.google.com/maps/search/?api=1&query=Frontier%20Tower%20%4014th%20floor%20995%20Market%20Street%2C%20San%20Francisco';
+  }
+  return `https://ft0.sh/where#${id}`;
+};
+
 function SingleEventCard({ event, room }: { event: Event; room: Room | null }) {
   const eventStart = parseISO(event.startsAt);
   const eventEnd = parseISO(event.endsAt);
-  const eventTitle = !event.originalLocation?.startsWith("https://lu.ma") ? event.originalLocation : "";
   const eventLink = event.originalLocation?.startsWith("https://lu.ma") ? event.originalLocation : "";
+  const locationName = room?.name || 'Unknown Location';
+  const locationUrl = getLocationUrl(event.location);
 
   return (
     <Card className="shadow-lg mb-6" style={{ borderLeft: `4px solid ${event.color}`}}>
@@ -85,10 +93,10 @@ function SingleEventCard({ event, room }: { event: Event; room: Room | null }) {
               Luma Event Link
             </a>
           ) : (
-            <span className="flex items-center gap-2" title={eventTitle}>
+            <a href={locationUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:underline" title={locationName}>
               <MapPin className="h-4 w-4 text-accent"/>
-              {room?.name || 'Unknown Location'}
-            </span>
+              {locationName}
+            </a>
           )}
           <span className="flex items-center gap-2">
             <Calendar className="h-4 w-4 text-accent"/>

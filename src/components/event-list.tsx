@@ -18,6 +18,14 @@ interface EventListContainerProps {
   initialEvents: Event[];
 }
 
+const getLocationUrl = (id: string) => {
+  if (id === 'frontier-tower') {
+    return 'https://www.google.com/maps/search/?api=1&query=Frontier%20Tower%20%4014th%20floor%20995%20Market%20Street%2C%20San%20Francisco';
+  }
+  return `https://ft0.sh/where#${id}`;
+};
+
+
 function EventListContainerComponent({ initialRooms, initialEvents }: EventListContainerProps) {
   const searchParams = useSearchParams();
   const [visibleSources, setVisibleSources] = useState<EventSource[]>(['frontier-tower', 'luma', 'mock']);
@@ -179,28 +187,32 @@ function EventListContainerComponent({ initialRooms, initialEvents }: EventListC
           processedEvents.map(event => {
             const eventStart = parseISO(event.startsAt);
             const eventEnd = parseISO(event.endsAt);
+            const locationName = roomNameMap.get(event.location) || 'Unknown Location';
+            const locationUrl = getLocationUrl(event.location);
             return (
-              <Link key={event.id} href={`/events/${event.id}`} className="block">
-                <Card className="h-full hover:shadow-lg transition-shadow" style={{ borderLeft: `4px solid ${event.color}`}}>
+              <Card key={event.id} className="h-full hover:shadow-lg transition-shadow flex flex-col" style={{ borderLeft: `4px solid ${event.color}`}}>
+                <Link href={`/events/${event.id}`} className="block flex-grow">
                   <CardHeader>
                     <CardTitle className="text-lg">{event.name}</CardTitle>
-                     <CardDescription className="flex items-center gap-2 pt-2">
-                        <MapPin className="h-4 w-4 text-accent"/>
-                        {roomNameMap.get(event.location) || 'Unknown Location'}
-                    </CardDescription>
                   </CardHeader>
-                  <CardContent className="flex flex-col gap-2 text-sm">
-                    <div className="flex items-center gap-2">
-                       <Calendar className="h-4 w-4 text-accent"/>
-                       {format(eventStart, 'MMMM d, yyyy')}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-accent"/>
-                      {format(eventStart, 'p')} - {format(eventEnd, 'p')}
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
+                </Link>
+                <CardContent className="flex-grow flex flex-col gap-2 text-sm">
+                  <a href={locationUrl} target="_blank" rel="noopener noreferrer" 
+                     className="flex items-center gap-2 pt-2 text-muted-foreground hover:text-primary hover:underline"
+                     onClick={(e) => e.stopPropagation()}>
+                    <MapPin className="h-4 w-4 text-accent"/>
+                    {locationName}
+                  </a>
+                  <div className="flex items-center gap-2">
+                     <Calendar className="h-4 w-4 text-accent"/>
+                     {format(eventStart, 'MMMM d, yyyy')}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-accent"/>
+                    {format(eventStart, 'p')} - {format(eventEnd, 'p')}
+                  </div>
+                </CardContent>
+              </Card>
             );
           })
         ) : (
