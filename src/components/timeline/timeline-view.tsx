@@ -36,7 +36,7 @@ interface TimelineViewProps {
 
 // Group events that occur in the same room and overlap in time
 function groupOverlappingEvents(events: Event[]): (Event | (Event & { group: Event[] }))[] {
-    const sortedEvents = [...events].sort((a, b) => parseISO(a.startsAt).getTime() - parseISO(b).startsAt).getTime());
+    const sortedEvents = [...events].sort((a, b) => parseISO(a.startsAt).getTime() - parseISO(b.startsAt).getTime());
     const eventGroups: Map<string, Event[]> = new Map();
 
     for (const event of sortedEvents) {
@@ -224,7 +224,7 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
   const gridWidth = zoom === 'day' ? '96rem' : zoom === 'week' ? '56rem' : '124rem';
 
   return (
-    <div className="flex flex-1 border-t">
+    <div className="flex flex-1">
       <RoomList flattenedRooms={flattenedRooms} />
       <div className="flex-1 min-w-0">
         <ScrollArea className="h-full" viewportRef={scrollContainerRef}>
@@ -234,12 +234,13 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
             </div>
             
             <div className="grid" style={{ gridTemplateColumns: getGridTemplateColumns() }}>
-              {flattenedRooms.map((room) => (
+              {flattenedRooms.map((room, roomIndex) => (
                 <div
                   key={room.id}
                   className="grid h-12"
                   style={{
                     gridColumn: '1 / -1',
+                    gridRow: `${roomIndex + 1} / ${roomIndex + 2}`,
                     gridTemplateColumns: getGridTemplateColumns(),
                   }}
                 >
@@ -283,5 +284,3 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
     </div>
   );
 }
-
-    
