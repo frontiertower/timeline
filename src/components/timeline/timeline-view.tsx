@@ -16,14 +16,12 @@ import {
   areIntervalsOverlapping,
   parseISO,
   isToday,
-  getDate,
-  isSameMonth,
   startOfToday,
   isWithinInterval,
 } from 'date-fns';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
-import { useMemo, useRef, useEffect } from 'react';
+import { useMemo, useRef, useEffect, useState } from 'react';
 
 type ZoomLevel = 'day' | 'week' | 'month';
 
@@ -126,33 +124,35 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
   useEffect(() => {
     const scrollEl = scrollContainerRef.current;
     if (!scrollEl) return;
-
+  
     const timer = setTimeout(() => {
-        const today = new Date();
-        const todayIsVisible = isWithinInterval(today, dateRange);
+      const today = new Date();
+      const todayIsVisible = isWithinInterval(today, dateRange);
+  
+      if (!todayIsVisible) return;
+  
+      let targetSlotIndex = -1;
+  
+      if (zoom === 'day') {
+        const currentMinute = getHours(today) * 60 + getMinutes(today);
+        targetSlotIndex = Math.floor(currentMinute / 30);
+      } else { // week or month
+        targetSlotIndex = timeSlots.findIndex(slot => isSameDay(slot.date, today));
+      }
+  
+      if (targetSlotIndex !== -1) {
+        const totalSlots = timeSlots.length;
+        if (totalSlots === 0 || scrollEl.scrollWidth === 0) return;
 
-        if (!todayIsVisible) return;
-
-        let targetSlotIndex = -1;
-        
-        if (zoom === 'day') {
-            const currentMinute = getHours(today) * 60 + getMinutes(today);
-            targetSlotIndex = Math.floor(currentMinute / 30);
-        } else { // week or month
-            targetSlotIndex = timeSlots.findIndex(slot => isSameDay(slot.date, today));
-        }
-
-        if (targetSlotIndex !== -1) {
-            const totalSlots = timeSlots.length;
-            const slotWidth = scrollEl.scrollWidth / totalSlots;
-            // Scroll to center the target slot
-            const scrollPosition = (targetSlotIndex * slotWidth) - (scrollEl.clientWidth / 2) + (slotWidth / 2);
-            scrollEl.scrollLeft = Math.max(0, scrollPosition);
-        }
+        const slotWidth = scrollEl.scrollWidth / totalSlots;
+        // Scroll to center the target slot
+        const scrollPosition = (targetSlotIndex * slotWidth) - (scrollEl.clientWidth / 2) + (slotWidth / 2);
+        scrollEl.scrollLeft = Math.max(0, scrollPosition);
+      }
     }, 100);
-
+  
     return () => clearTimeout(timer);
-}, [zoom, dateRange, timeSlots.length]);
+  }, [zoom, dateRange, timeSlots.length]);
 
 
   const getEventGridPosition = (event: Event) => {
@@ -201,7 +201,7 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
     }
 
     return {
-      gridRow: roomIndex + 1, // +1 because css grid is 1-indexed
+      gridRow: roomIndex + 2, // +2 because header is 1, grid starts at 2
       gridColumn: `${gridColumnStart} / ${gridColumnEnd}`,
     };
   };
@@ -246,45 +246,62 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
   const gridWidth = zoom === 'day' ? '96rem' : zoom === 'week' ? '56rem' : '124rem';
 
   return (
-    <div className="flex flex-1 border-t">
-        <RoomList flattenedRooms={flattenedRooms} />
-        <div className="flex-1 min-w-0">
-          <ScrollArea className="h-full" ref={scrollContainerRef}>
-            <div className="relative" style={{ width: gridWidth }}>
-              {/* Header */}
+    <div className="flex flex-1 border-t overflow-hidden">
+      <RoomList flattenedRooms={flattenedRooms} />
+      <div className="flex-1 min-w-0">
+        <ScrollArea className="h-full" ref={scrollContainerRef}>
+          <div className="relative" style={{ width: gridWidth }}>
+            <div className="sticky top-0 z-10 bg-card">
               {zoom === 'day' ? <DayViewHeader /> : <OtherViewHeader />}
-
-              {/* Grid and Events */}
-              <div className="grid" style={{ gridTemplateColumns: getGridTemplateColumns() }}>
-                  {/* Grid lines */}
-                  {flattenedRooms.map(room => 
-                      timeSlots.map((slot, index) => (
-                          <div key={`${room.id}-${index}`} className="h-12 border-b border-r"></div>
-                      ))
-                  )}
-
-                  {processedEvents.map(event => {
-                      const position = getEventGridPosition(event);
-                      if (!position) return null;
-                      
-                      // The type assertion is needed because the 'group' property is added dynamically
-                      const groupedEvent = event as Event & { group?: Event[] };
-
-                      return (
-                          <div 
-                            key={event.id} 
-                            style={{ gridRow: position.gridRow, gridColumn: position.gridColumn }} 
-                            className="p-1 h-12 relative"
-                          >
-                              <EventItem event={event} group={groupedEvent.group} />
-                          </div>
-                      ) 
-                  })}
-              </div>
             </div>
-            <ScrollBar orientation="horizontal" />
-          </ScrollArea>
-        </div>
+            
+            <div className="grid" style={{ gridTemplateColumns: getGridTemplateColumns() }}>
+              {flattenedRooms.map((room, roomIndex) => (
+                <div
+                  key={room.id}
+                  className="grid h-12"
+                  style={{
+                    gridColumn: '1 / -1',
+                    gridTemplateColumns: getGridTemplateColumns(),
+                  }}
+                >
+                  {timeSlots.map((slot, slotIndex) => (
+                    <div
+                      key={`${room.id}-${slotIndex}`}
+                      className="h-12 border-b border-r"
+                    />
+                  ))}
+                </div>
+              ))}
+
+              {processedEvents.map(event => {
+                const position = getEventGridPosition(event);
+                if (!position) return null;
+
+                const roomIndex = flattenedRooms.findIndex(r => r.id === event.location);
+                if (roomIndex === -1) return null;
+
+                const groupedEvent = event as Event & { group?: Event[] };
+
+                return (
+                  <div
+                    key={event.id}
+                    style={{
+                      gridRowStart: roomIndex + 1,
+                      gridRowEnd: roomIndex + 2,
+                      gridColumn: position.gridColumn,
+                    }}
+                    className="p-1 h-12 relative"
+                  >
+                    <EventItem event={event} group={groupedEvent.group} />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          <ScrollBar orientation="horizontal" />
+        </ScrollArea>
       </div>
+    </div>
   );
 }
