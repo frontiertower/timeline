@@ -260,7 +260,7 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
         visibleSources={visibleSources}
         onVisibleSourcesChange={setVisibleSources}
       />
-        <div className="flex flex-col flex-1 mt-4 rounded-lg shadow-sm">
+        <div className="flex flex-col flex-1 mt-4 rounded-lg shadow-sm relative">
             {flattenedVisibleRooms.length > 0 ? (
                 <TimelineView
                     events={visibleEvents}
