@@ -17,11 +17,10 @@ import {
   parseISO,
   isToday,
   startOfToday,
-  isWithinInterval,
 } from 'date-fns';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
-import { useMemo, useRef, useEffect, useState } from 'react';
+import { useMemo, useRef, useEffect } from 'react';
 
 type ZoomLevel = 'day' | 'week' | 'month';
 
@@ -100,25 +99,6 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
     }
   };
 
-  const getTimeSlots = () => {
-    switch (zoom) {
-      case 'day':
-        return eachHourOfInterval(dateRange).flatMap(hour => [
-          { label: format(hour, 'ha'), date: hour },
-          { label: '', date: new Date(hour.getTime() + 30 * 60000) }
-        ]);
-      case 'week':
-        return eachDayOfInterval(dateRange).map(day => ({
-          label: format(day, 'EEE d'),
-          date: day,
-        }));
-      case 'month':
-        return eachDayOfInterval(dateRange).map(day => ({
-          label: format(day, 'd'),
-          date: day,
-        }));
-    }
-  };
   const timeSlots = getTimeSlots();
 
   useEffect(() => {
@@ -182,6 +162,26 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
       gridRow: roomIndex + 2, // +2 because header is 1, grid starts at 2
       gridColumn: `${gridColumnStart} / ${gridColumnEnd}`,
     };
+  };
+
+  const getTimeSlots = () => {
+    switch (zoom) {
+      case 'day':
+        return eachHourOfInterval(dateRange).flatMap(hour => [
+          { label: format(hour, 'ha'), date: hour },
+          { label: '', date: new Date(hour.getTime() + 30 * 60000) }
+        ]);
+      case 'week':
+        return eachDayOfInterval(dateRange).map(day => ({
+          label: format(day, 'EEE d'),
+          date: day,
+        }));
+      case 'month':
+        return eachDayOfInterval(dateRange).map(day => ({
+          label: format(day, 'd'),
+          date: day,
+        }));
+    }
   };
 
   const handleTimeSlotClick = (date: Date) => {
