@@ -15,11 +15,13 @@ import {
   isAfter,
   areIntervalsOverlapping,
   parseISO,
+  isToday,
+  getDate,
 } from 'date-fns';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { Separator } from '../ui/separator';
-import { useMemo } from 'react';
+import { useMemo, useRef, useEffect } from 'react';
 
 type ZoomLevel = 'day' | 'week' | 'month';
 
@@ -88,6 +90,7 @@ function groupOverlappingEvents(events: Event[]): (Event | (Event & { group: Eve
 export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomChange, onDateChange }: TimelineViewProps) {
   
   const processedEvents = useMemo(() => groupOverlappingEvents(events), [events]);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   
   const getGridTemplateColumns = () => {
     switch (zoom) {
@@ -117,6 +120,22 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
     }
   };
   const timeSlots = getTimeSlots();
+
+  useEffect(() => {
+    if (zoom === 'month' && scrollContainerRef.current) {
+        const today = new Date();
+        const firstDayOfMonth = timeSlots[0]?.date;
+        if (firstDayOfMonth && isSameDay(today, new Date(today.getFullYear(), firstDayOfMonth.getMonth(), today.getDate()))) {
+            const dayIndex = getDate(today) - 1; // 0-indexed
+            const totalDays = timeSlots.length;
+            const scrollWidth = scrollContainerRef.current.scrollWidth;
+            const containerWidth = scrollContainerRef.current.clientWidth;
+            const scrollPosition = (scrollWidth - containerWidth) * (dayIndex / totalDays);
+            scrollContainerRef.current.scrollLeft = Math.max(0, scrollPosition);
+        }
+    }
+  }, [zoom, timeSlots]);
+
 
   const getEventGridPosition = (event: Event) => {
     const roomIndex = flattenedRooms.findIndex(r => r.id === event.location);
@@ -190,7 +209,7 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
   const OtherViewHeader = () => (
      <div className="grid sticky top-0 z-10 bg-card" style={{ gridTemplateColumns: getGridTemplateColumns() }}>
         {timeSlots.map(({ label, date }) => (
-          <div key={label} className={cn("flex-shrink-0 text-center p-2 text-sm font-medium text-muted-foreground h-12 flex items-center justify-center border-b", (zoom === 'week' || zoom === 'month') && "cursor-pointer hover:bg-muted")}
+          <div key={label} className={cn("flex-shrink-0 text-center p-2 text-sm font-medium text-muted-foreground h-12 flex items-center justify-center border-b", (zoom === 'week' || zoom === 'month') && "cursor-pointer hover:bg-muted", isToday(date) && "font-bold text-primary")}
             onClick={() => handleTimeSlotClick(date)}
           >
             {label}
@@ -203,7 +222,7 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
     <ScrollArea className="w-full rounded-b-lg">
       <div className="flex relative">
         <RoomList flattenedRooms={flattenedRooms} />
-        <div className="flex-1 relative overflow-x-auto">
+        <div className="flex-1 relative overflow-hidden" ref={scrollContainerRef}>
           {/* Header */}
           {zoom === 'day' ? <DayViewHeader /> : <OtherViewHeader />}
 
