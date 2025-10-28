@@ -129,31 +129,41 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
         const today = new Date();
         const isCurrentView = isWithinInterval(today, { start: dateRange.start, end: dateRange.end });
         
-        if (!isCurrentView) {
-             scrollEl.scrollLeft = 0;
-             return;
-        }
+        if (isCurrentView) {
+            if (zoom === 'day') {
+                const now = new Date();
+                const currentMinutes = now.getHours() * 60 + now.getMinutes();
+                const totalMinutes = 24 * 60;
+                const scrollFraction = currentMinutes / totalMinutes;
+                const scrollPosition = scrollEl.scrollWidth * scrollFraction - scrollEl.clientWidth / 2;
+                scrollEl.scrollLeft = Math.max(0, scrollPosition);
 
-        if (zoom === 'day') {
-            const now = new Date();
-            const currentMinutes = now.getHours() * 60 + now.getMinutes();
-            const totalMinutes = 24 * 60;
-            const scrollFraction = currentMinutes / totalMinutes;
-            const scrollPosition = scrollEl.scrollWidth * scrollFraction - scrollEl.clientWidth / 2;
-            scrollEl.scrollLeft = Math.max(0, scrollPosition);
-
-        } else { // week or month
-            const todayIndex = timeSlots.findIndex(slot => isSameDay(slot.date, today));
-            if (todayIndex > -1) {
-                const scrollFraction = todayIndex / timeSlots.length;
+            } else { // week or month
+                const todayIndex = timeSlots.findIndex(slot => isSameDay(slot.date, today));
+                if (todayIndex > -1) {
+                    const scrollFraction = todayIndex / timeSlots.length;
+                    const scrollPosition = scrollEl.scrollWidth * scrollFraction;
+                    scrollEl.scrollLeft = scrollPosition;
+                }
+            }
+        } else {
+             if (zoom === 'day' && events.length > 0) {
+                const earliestEvent = events.reduce((earliest, current) => {
+                    return isBefore(parseISO(current.startsAt), parseISO(earliest.startsAt)) ? current : earliest;
+                });
+                const startMinutes = getHours(parseISO(earliestEvent.startsAt)) * 60 + getMinutes(parseISO(earliestEvent.startsAt));
+                const totalMinutes = 24 * 60;
+                const scrollFraction = Math.max(0, (startMinutes - 60) / totalMinutes); // show an hour before
                 const scrollPosition = scrollEl.scrollWidth * scrollFraction;
                 scrollEl.scrollLeft = scrollPosition;
-            }
+             } else {
+                scrollEl.scrollLeft = 0;
+             }
         }
     }, 100); 
   
     return () => clearTimeout(timer);
-  }, [zoom, dateRange, timeSlots.length]);
+  }, [zoom, dateRange, timeSlots.length, events]);
 
 
   const getEventGridPosition = (event: Event) => {
