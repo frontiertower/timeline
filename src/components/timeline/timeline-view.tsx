@@ -17,6 +17,7 @@ import {
   parseISO,
   isToday,
   startOfToday,
+  isWithinInterval,
 } from 'date-fns';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
@@ -118,7 +119,6 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
         }));
     }
   };
-
   const timeSlots = getTimeSlots();
 
   useEffect(() => {
@@ -126,7 +126,30 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
     if (!scrollEl) return;
   
     const timer = setTimeout(() => {
-      scrollEl.scrollLeft = scrollEl.scrollWidth;
+        const today = new Date();
+        const isCurrentView = isWithinInterval(today, { start: dateRange.start, end: dateRange.end });
+        
+        if (!isCurrentView) {
+             scrollEl.scrollLeft = 0;
+             return;
+        }
+
+        if (zoom === 'day') {
+            const now = new Date();
+            const currentMinutes = now.getHours() * 60 + now.getMinutes();
+            const totalMinutes = 24 * 60;
+            const scrollFraction = currentMinutes / totalMinutes;
+            const scrollPosition = scrollEl.scrollWidth * scrollFraction - scrollEl.clientWidth / 2;
+            scrollEl.scrollLeft = Math.max(0, scrollPosition);
+
+        } else { // week or month
+            const todayIndex = timeSlots.findIndex(slot => isSameDay(slot.date, today));
+            if (todayIndex > -1) {
+                const scrollFraction = todayIndex / timeSlots.length;
+                const scrollPosition = scrollEl.scrollWidth * scrollFraction;
+                scrollEl.scrollLeft = scrollPosition;
+            }
+        }
     }, 100); 
   
     return () => clearTimeout(timer);
