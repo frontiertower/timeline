@@ -83,6 +83,7 @@ export const rooms: Room = {
         type: 'floor',
         parentId: 'frontier-tower',
         children: [
+          { id: 'f9r1', name: '9th Floor Annex', type: 'room', parentId: 'floor-11' },
         ]
     },
     {
@@ -91,6 +92,7 @@ export const rooms: Room = {
         type: 'floor',
         parentId: 'frontier-tower',
         children: [
+          { id: 'f11r1', name: '11th Floor Annex', type: 'room', parentId: 'floor-11' },
         ]
     },
     {
