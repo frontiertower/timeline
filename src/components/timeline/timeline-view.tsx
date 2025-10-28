@@ -19,6 +19,7 @@ import {
   getDate,
   isSameMonth,
   startOfToday,
+  isWithinInterval,
 } from 'date-fns';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
@@ -125,36 +126,33 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
   useEffect(() => {
     const scrollEl = scrollContainerRef.current;
     if (!scrollEl) return;
-  
-    // Use a short delay to allow the browser to paint the new layout
+
     const timer = setTimeout(() => {
-      if (zoom === 'month') {
         const today = new Date();
-        if (isSameMonth(today, dateRange.start)) {
-          const dayIndex = getDate(today) - 1; // 0-indexed
-          const totalDays = timeSlots.length;
-          if (totalDays > 0) {
-            const dayWidth = scrollEl.scrollWidth / totalDays;
-            const scrollPosition = dayIndex * dayWidth;
-            scrollEl.scrollLeft = Math.max(0, scrollPosition - (scrollEl.clientWidth / 2) + (dayWidth / 2));
-          }
+        const todayIsVisible = isWithinInterval(today, dateRange);
+
+        if (!todayIsVisible) return;
+
+        let targetSlotIndex = -1;
+        
+        if (zoom === 'day') {
+            const currentMinute = getHours(today) * 60 + getMinutes(today);
+            targetSlotIndex = Math.floor(currentMinute / 30);
+        } else { // week or month
+            targetSlotIndex = timeSlots.findIndex(slot => isSameDay(slot.date, today));
         }
-      } else if (zoom === 'day') {
-        const now = new Date();
-        if (isSameDay(now, dateRange.start)) {
-          const currentHour = getHours(now) + getMinutes(now) / 60;
-          const totalHours = 24;
-          if (totalHours > 0) {
-            const hourWidth = scrollEl.scrollWidth / totalHours;
-            const scrollPosition = currentHour * hourWidth;
-            scrollEl.scrollLeft = Math.max(0, scrollPosition - (scrollEl.clientWidth / 2) + (hourWidth / 2));
-          }
+
+        if (targetSlotIndex !== -1) {
+            const totalSlots = timeSlots.length;
+            const slotWidth = scrollEl.scrollWidth / totalSlots;
+            // Scroll to center the target slot
+            const scrollPosition = (targetSlotIndex * slotWidth) - (scrollEl.clientWidth / 2) + (slotWidth / 2);
+            scrollEl.scrollLeft = Math.max(0, scrollPosition);
         }
-      }
-    }, 100); // 100ms delay
-  
+    }, 100);
+
     return () => clearTimeout(timer);
-  }, [zoom, dateRange.start, timeSlots.length]);
+}, [zoom, dateRange, timeSlots.length]);
 
 
   const getEventGridPosition = (event: Event) => {
@@ -203,7 +201,7 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
     }
 
     return {
-      gridRow: roomIndex + 2, // +2 because of header row
+      gridRow: roomIndex + 1, // +1 because css grid is 1-indexed
       gridColumn: `${gridColumnStart} / ${gridColumnEnd}`,
     };
   };
@@ -275,7 +273,7 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
                       return (
                           <div 
                             key={event.id} 
-                            style={{ gridRow: position.gridRow - 1, gridColumn: position.gridColumn }} 
+                            style={{ gridRow: position.gridRow, gridColumn: position.gridColumn }} 
                             className="p-1 h-12 relative"
                           >
                               <EventItem event={event} group={groupedEvent.group} />
@@ -290,4 +288,3 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
       </div>
   );
 }
-
