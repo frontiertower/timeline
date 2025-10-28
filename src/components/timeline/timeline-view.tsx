@@ -17,6 +17,7 @@ import {
   parseISO,
   isToday,
   getDate,
+  isSameMonth,
 } from 'date-fns';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
@@ -122,19 +123,20 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
   const timeSlots = getTimeSlots();
 
   useEffect(() => {
-    if (zoom === 'month' && scrollContainerRef.current) {
+    const scrollEl = scrollContainerRef.current?.children[0] as HTMLDivElement | undefined;
+    if (zoom === 'month' && scrollEl) {
         const today = new Date();
-        const firstDayOfMonth = timeSlots[0]?.date;
-        if (firstDayOfMonth && isSameDay(today, new Date(today.getFullYear(), firstDayOfMonth.getMonth(), today.getDate()))) {
+        // Check if the current month is being viewed
+        if (isSameMonth(today, dateRange.start)) {
             const dayIndex = getDate(today) - 1; // 0-indexed
             const totalDays = timeSlots.length;
-            const scrollWidth = scrollContainerRef.current.scrollWidth;
-            const containerWidth = scrollContainerRef.current.clientWidth;
-            const scrollPosition = (scrollWidth - containerWidth) * (dayIndex / totalDays);
-            scrollContainerRef.current.scrollLeft = Math.max(0, scrollPosition);
+            if (scrollEl.scrollWidth > scrollEl.clientWidth) {
+              const scrollPosition = (scrollEl.scrollWidth - scrollEl.clientWidth) * (dayIndex / totalDays);
+              scrollEl.scrollLeft = Math.max(0, scrollPosition);
+            }
         }
     }
-  }, [zoom, timeSlots]);
+  }, [zoom, dateRange, timeSlots]);
 
 
   const getEventGridPosition = (event: Event) => {
@@ -219,37 +221,37 @@ export function TimelineView({ events, dateRange, zoom, flattenedRooms, onZoomCh
   )
 
   return (
-    <ScrollArea className="w-full rounded-b-lg">
-      <div className="flex relative">
+      <div className="flex flex-1 relative rounded-b-lg">
         <RoomList flattenedRooms={flattenedRooms} />
-        <div className="flex-1 relative" ref={scrollContainerRef}>
-          {/* Header */}
-          {zoom === 'day' ? <DayViewHeader /> : <OtherViewHeader />}
+        <ScrollArea className="flex-1" ref={scrollContainerRef}>
+          <div className="relative">
+            {/* Header */}
+            {zoom === 'day' ? <DayViewHeader /> : <OtherViewHeader />}
 
-          {/* Grid and Events */}
-          <div className="grid" style={{ gridTemplateColumns: getGridTemplateColumns(), gridTemplateRows: `repeat(${flattenedRooms.length}, 3rem)` }}>
+            {/* Grid and Events */}
+            <div className="grid" style={{ gridTemplateColumns: getGridTemplateColumns(), gridTemplateRows: `repeat(${flattenedRooms.length}, 3rem)` }}>
 
-              {processedEvents.map(event => {
-                  const position = getEventGridPosition(event);
-                  if (!position) return null;
-                  
-                  // The type assertion is needed because the 'group' property is added dynamically
-                  const groupedEvent = event as Event & { group?: Event[] };
+                {processedEvents.map(event => {
+                    const position = getEventGridPosition(event);
+                    if (!position) return null;
+                    
+                    // The type assertion is needed because the 'group' property is added dynamically
+                    const groupedEvent = event as Event & { group?: Event[] };
 
-                  return (
-                      <div 
-                        key={event.id} 
-                        style={{ gridRow: position.gridRow -1, gridColumn: position.gridColumn }} 
-                        className="p-1 h-12 relative"
-                      >
-                          <EventItem event={event} group={groupedEvent.group} />
-                      </div>
-                  ) 
-              })}
+                    return (
+                        <div 
+                          key={event.id} 
+                          style={{ gridRow: position.gridRow -1, gridColumn: position.gridColumn }} 
+                          className="p-1 h-12 relative"
+                        >
+                            <EventItem event={event} group={groupedEvent.group} />
+                        </div>
+                    ) 
+                })}
+            </div>
           </div>
-        </div>
+          <ScrollBar orientation="horizontal" />
+        </ScrollArea>
       </div>
-      <ScrollBar orientation="horizontal" />
-    </ScrollArea>
   );
 }

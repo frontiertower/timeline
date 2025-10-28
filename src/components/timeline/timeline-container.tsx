@@ -260,18 +260,16 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
         visibleSources={visibleSources}
         onVisibleSourcesChange={setVisibleSources}
       />
-        <div className="flex flex-col flex-1 mt-4 rounded-lg shadow-sm overflow-hidden">
+        <div className="flex flex-col flex-1 mt-4 rounded-lg shadow-sm">
             {flattenedVisibleRooms.length > 0 ? (
-                <div className="flex flex-1">
-                    <TimelineView
-                        events={visibleEvents}
-                        dateRange={dateRange}
-                        zoom={zoom}
-                        flattenedRooms={flattenedVisibleRooms}
-                        onZoomChange={handleZoomChange}
-                        onDateChange={handleDateChange}
-                    />
-                </div>
+                <TimelineView
+                    events={visibleEvents}
+                    dateRange={dateRange}
+                    zoom={zoom}
+                    flattenedRooms={flattenedVisibleRooms}
+                    onZoomChange={handleZoomChange}
+                    onDateChange={handleDateChange}
+                />
             ) : (
                 <div className="flex-1 flex items-center justify-center text-muted-foreground p-8">
                     <p>No events scheduled for this period.</p>
