@@ -10,8 +10,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { format } from 'date-fns';
+import { format, isBefore, parseISO } from 'date-fns';
 import { Users } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface EventItemProps {
   event: Event;
@@ -20,12 +21,28 @@ interface EventItemProps {
 
 export function EventItem({ event, group = [] }: EventItemProps) {
   const isGroup = group.length > 1;
+  const eventEnd = parseISO(event.endsAt);
+  const isPast = isBefore(eventEnd, new Date());
 
-  const cardStyle = {
-    backgroundColor: isGroup ? 'hsl(var(--muted))' : event.color,
-    color: isGroup ? 'hsl(var(--muted-foreground))' : 'hsl(var(--primary-foreground))',
-    border: isGroup ? '1px dashed hsl(var(--border))' : 'none',
-  };
+  let cardStyle: React.CSSProperties = {};
+  
+  if (isPast) {
+    cardStyle = {
+        backgroundColor: 'hsl(var(--muted))',
+        color: 'hsl(var(--muted-foreground))',
+    };
+  } else if (isGroup) {
+    cardStyle = {
+      backgroundColor: 'hsl(var(--muted))',
+      color: 'hsl(var(--muted-foreground))',
+      border: '1px dashed hsl(var(--border))',
+    };
+  } else {
+     cardStyle = {
+        backgroundColor: event.color,
+        color: 'hsl(var(--primary-foreground))',
+    };
+  }
 
   const eventName = isGroup ? `${group.length} Events` : event.name;
   const eventId = isGroup ? group.map(e => e.id).join(',') : event.id;
@@ -61,7 +78,10 @@ export function EventItem({ event, group = [] }: EventItemProps) {
         <TooltipTrigger asChild>
           <Link href={`/events/${eventId}`} className="block h-full">
             <Card 
-              className="h-full w-full hover:opacity-80 transition-opacity duration-200 shadow-md overflow-hidden"
+              className={cn(
+                  "h-full w-full hover:opacity-80 transition-opacity duration-200 shadow-md overflow-hidden",
+                  isPast && "grayscale opacity-70"
+              )}
               style={cardStyle}
             >
               <CardHeader className="p-2 flex-row items-center gap-2">

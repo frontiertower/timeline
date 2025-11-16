@@ -23,7 +23,7 @@ export default function ReadmePage() {
           </CardHeader>
           <CardContent className="space-y-6 text-base leading-relaxed">
             <p>
-              Welcome to the Frontier Tower Timeline, a dynamic and visually-driven application designed to showcase events happening across a multi-story building. This project demonstrates a modern, full-stack web application built with Next.js, React, and Tailwind CSS, featuring a real-time, zoomable timeline interface.
+              Welcome to the Frontier Tower Timeline, a dynamic and visually-driven application designed to showcase events happening across a multi-story building. This project demonstrates a modern, full-stack web application built with Next.js, React, and Tailwind CSS, featuring a real-time, zoomable timeline interface. It was vibe-coded on <a href="https://firebase.studio/">Firebase Studio</a>.
             </p>
             <div className="space-y-4">
               <h3 className="text-2xl font-headline font-semibold">Key Features</h3>

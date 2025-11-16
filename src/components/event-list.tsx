@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import Link from 'next/link';
 import { Calendar, Clock, MapPin, Grid } from 'lucide-react';
 import { FrontierTowerLogo } from './icons';
+import { cn } from '@/lib/utils';
 
 interface EventListContainerProps {
   initialRooms: Room;
@@ -69,8 +70,7 @@ function EventListContainerComponent({ initialRooms, initialEvents }: EventListC
   const processedEvents = useMemo(() => {
     const today = startOfToday();
     let filteredEvents = initialEvents
-        .filter(event => visibleSources.includes(event.source))
-        .filter(event => !isBefore(parseISO(event.endsAt), today));
+        .filter(event => visibleSources.includes(event.source));
 
 
     const shouldDeduplicate = visibleSources.includes('frontier-tower') && visibleSources.includes('luma');
@@ -84,32 +84,45 @@ function EventListContainerComponent({ initialRooms, initialEvents }: EventListC
         });
 
         const dedupedEvents: Event[] = [];
+        const handledEventIds = new Set<string>();
+
         for (const eventGroup of eventsByName.values()) {
             if (eventGroup.length <= 1) {
-                dedupedEvents.push(...eventGroup);
+                eventGroup.forEach(event => {
+                    if (!handledEventIds.has(event.id)) {
+                        dedupedEvents.push(event);
+                        handledEventIds.add(event.id);
+                    }
+                });
                 continue;
             }
 
-            const handledEventIds = new Set<string>();
-            for (const eventA of eventGroup) {
-                if (handledEventIds.has(eventA.id)) continue;
-
-                const similarEvents = [eventA];
-                for (const eventB of eventGroup) {
-                    if (eventA.id === eventB.id || handledEventIds.has(eventB.id)) continue;
-
-                    const timeDiff = Math.abs(differenceInMinutes(parseISO(eventA.startsAt), parseISO(eventB.startsAt)));
-                    if (timeDiff <= 5) {
-                        similarEvents.push(eventB);
+            // Group similar events by time
+            const timeBuckets = new Map<number, Event[]>();
+            for (const event of eventGroup) {
+                const startTime = parseISO(event.startsAt).getTime();
+                let foundBucket = false;
+                for (const bucketTime of timeBuckets.keys()) {
+                    if (Math.abs(startTime - bucketTime) <= 5 * 60 * 1000) { // 5 minutes tolerance
+                        timeBuckets.get(bucketTime)!.push(event);
+                        foundBucket = true;
+                        break;
                     }
                 }
+                if (!foundBucket) {
+                    timeBuckets.set(startTime, [event]);
+                }
+            }
+
+            for (const similarEvents of timeBuckets.values()) {
+                if (similarEvents.every(e => handledEventIds.has(e.id))) continue;
 
                 if (similarEvents.length > 1) {
                     const ftEvent = similarEvents.find(e => e.source === 'frontier-tower');
                     const baseEvent = ftEvent || similarEvents[0];
                     
                     const mergedEvent: Event = { ...baseEvent };
-                    mergedEvent.id = similarEvents.map(e => e.id).join(',');
+                    mergedEvent.id = [...new Set(similarEvents.map(e => e.id))].join(',');
                     
                     const lumaEvents = similarEvents.filter(e => e.source === 'luma');
                     const mostSpecificLuma = lumaEvents.find(e => e.location && e.location !== 'frontier-tower');
@@ -118,11 +131,16 @@ function EventListContainerComponent({ initialRooms, initialEvents }: EventListC
                       mergedEvent.location = mostSpecificLuma.location;
                     }
                     
-                    dedupedEvents.push(mergedEvent);
-                    similarEvents.forEach(e => handledEventIds.add(e.id));
+                    if (!handledEventIds.has(mergedEvent.id)) {
+                      dedupedEvents.push(mergedEvent);
+                      similarEvents.forEach(e => handledEventIds.add(e.id));
+                    }
                 } else {
-                    dedupedEvents.push(eventA);
-                    handledEventIds.add(eventA.id);
+                    const singleEvent = similarEvents[0];
+                    if (!handledEventIds.has(singleEvent.id)) {
+                        dedupedEvents.push(singleEvent);
+                        handledEventIds.add(singleEvent.id);
+                    }
                 }
             }
         }
@@ -190,10 +208,19 @@ function EventListContainerComponent({ initialRooms, initialEvents }: EventListC
           processedEvents.map(event => {
             const eventStart = parseISO(event.startsAt);
             const eventEnd = parseISO(event.endsAt);
+            const isPast = isBefore(eventEnd, new Date());
             const locationName = roomNameMap.get(event.location) || 'Unknown Location';
             const locationUrl = getLocationUrl(event.location);
+
+            const cardStyle = isPast ? {} : { borderLeft: `4px solid ${event.color}` };
+
             return (
-              <Card key={event.id} className="h-full hover:shadow-lg transition-shadow flex flex-col" style={{ borderLeft: `4px solid ${event.color}`}}>
+              <Card key={event.id} className={cn(
+                  "h-full hover:shadow-lg transition-shadow flex flex-col",
+                  isPast && "opacity-50 grayscale"
+                )} 
+                style={cardStyle}
+              >
                 <Link href={`/events/${event.id}`} className="block flex-grow">
                   <CardHeader>
                     <CardTitle className="text-lg">{event.name}</CardTitle>
