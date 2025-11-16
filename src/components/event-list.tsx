@@ -97,7 +97,6 @@ function EventListContainerComponent({ initialRooms, initialEvents }: EventListC
                 continue;
             }
 
-            // Group similar events by time
             const timeBuckets = new Map<number, Event[]>();
             for (const event of eventGroup) {
                 const startTime = parseISO(event.startsAt).getTime();
@@ -122,7 +121,8 @@ function EventListContainerComponent({ initialRooms, initialEvents }: EventListC
                     const baseEvent = ftEvent || similarEvents[0];
                     
                     const mergedEvent: Event = { ...baseEvent };
-                    mergedEvent.id = [...new Set(similarEvents.map(e => e.id))].join(',');
+                    const mergedIds = [...new Set(similarEvents.map(e => e.id))].sort().join(',');
+                    mergedEvent.id = mergedIds;
                     
                     const lumaEvents = similarEvents.filter(e => e.source === 'luma');
                     const mostSpecificLuma = lumaEvents.find(e => e.location && e.location !== 'frontier-tower');
@@ -221,7 +221,7 @@ function EventListContainerComponent({ initialRooms, initialEvents }: EventListC
                 )} 
                 style={cardStyle}
               >
-                <Link href={`/events/${event.id}`} className="block flex-grow">
+                <Link href={`/events/${encodeURIComponent(event.id)}`} className="block flex-grow">
                   <CardHeader>
                     <CardTitle className="text-lg">{event.name}</CardTitle>
                   </CardHeader>
@@ -262,3 +262,5 @@ export function EventListContainer(props: EventListContainerProps) {
     </Suspense>
   );
 }
+
+    

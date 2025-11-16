@@ -57,7 +57,7 @@ export function EventItem({ event, group = [] }: EventItemProps) {
           </ul>
            <p className="text-sm text-muted-foreground mt-2">
             Click to see details for all events.
-          </p>
+           </p>
         </>
       )
     }
@@ -76,7 +76,7 @@ export function EventItem({ event, group = [] }: EventItemProps) {
     <TooltipProvider delayDuration={100}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Link href={`/events/${eventId}`} className="block h-full">
+          <Link href={`/events/${encodeURIComponent(eventId)}`} className="block h-full">
             <Card 
               className={cn(
                   "h-full w-full hover:opacity-80 transition-opacity duration-200 shadow-md overflow-hidden",
@@ -100,3 +100,5 @@ export function EventItem({ event, group = [] }: EventItemProps) {
     </TooltipProvider>
   );
 }
+
+    

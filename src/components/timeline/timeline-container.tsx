@@ -118,7 +118,6 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
   const visibleEvents = useMemo(() => {
     const unknownLocations = new Set<string>();
     
-    // 1. Filter events by date range and selected sources
     let filteredEvents = initialEvents.filter(event => {
       if (!visibleSources.includes(event.source)) {
           return false;
@@ -131,7 +130,6 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
       );
     });
 
-    // 2. De-duplicate if both FT and Luma are selected
     const shouldDeduplicate = visibleSources.includes('frontier-tower') && visibleSources.includes('luma');
     if (shouldDeduplicate) {
         const eventsByName = new Map<string, Event[]>();
@@ -141,34 +139,47 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
             }
             eventsByName.get(event.name)!.push(event);
         });
-        
+
         const dedupedEvents: Event[] = [];
+        const handledEventIds = new Set<string>();
+
         for (const eventGroup of eventsByName.values()) {
             if (eventGroup.length <= 1) {
-                dedupedEvents.push(...eventGroup);
+                 eventGroup.forEach(event => {
+                    if (!handledEventIds.has(event.id)) {
+                        dedupedEvents.push(event);
+                        handledEventIds.add(event.id);
+                    }
+                });
                 continue;
             }
 
-            const handledEventIds = new Set<string>();
-            for (const eventA of eventGroup) {
-                if (handledEventIds.has(eventA.id)) continue;
-
-                const similarEvents = [eventA];
-                for (const eventB of eventGroup) {
-                    if (eventA.id === eventB.id || handledEventIds.has(eventB.id)) continue;
-
-                    const timeDiff = Math.abs(differenceInMinutes(parseISO(eventA.startsAt), parseISO(eventB.startsAt)));
-                    if (timeDiff <= 5) {
-                        similarEvents.push(eventB);
+            const timeBuckets = new Map<number, Event[]>();
+            for (const event of eventGroup) {
+                const startTime = parseISO(event.startsAt).getTime();
+                let foundBucket = false;
+                for (const bucketTime of timeBuckets.keys()) {
+                    if (Math.abs(startTime - bucketTime) <= 5 * 60 * 1000) { // 5 minutes tolerance
+                        timeBuckets.get(bucketTime)!.push(event);
+                        foundBucket = true;
+                        break;
                     }
                 }
+                if (!foundBucket) {
+                    timeBuckets.set(startTime, [event]);
+                }
+            }
+
+            for (const similarEvents of timeBuckets.values()) {
+                if (similarEvents.every(e => handledEventIds.has(e.id))) continue;
 
                 if (similarEvents.length > 1) {
                     const ftEvent = similarEvents.find(e => e.source === 'frontier-tower');
                     const baseEvent = ftEvent || similarEvents[0];
                     
                     const mergedEvent: Event = { ...baseEvent };
-                    mergedEvent.id = similarEvents.map(e => e.id).join(',');
+                    const mergedIds = [...new Set(similarEvents.map(e => e.id))].sort().join(',');
+                    mergedEvent.id = mergedIds;
 
                     const lumaEvents = similarEvents.filter(e => e.source === 'luma');
                     const mostSpecificLuma = lumaEvents.find(e => e.location && e.location !== 'frontier-tower');
@@ -177,18 +188,22 @@ function TimelineContainerComponent({ initialRooms, initialEvents }: TimelineCon
                       mergedEvent.location = mostSpecificLuma.location;
                     }
                     
-                    dedupedEvents.push(mergedEvent);
-                    similarEvents.forEach(e => handledEventIds.add(e.id));
+                    if (!handledEventIds.has(mergedEvent.id)) {
+                      dedupedEvents.push(mergedEvent);
+                      similarEvents.forEach(e => handledEventIds.add(e.id));
+                    }
                 } else {
-                    dedupedEvents.push(eventA);
-                    handledEventIds.add(eventA.id);
+                    const singleEvent = similarEvents[0];
+                    if (!handledEventIds.has(singleEvent.id)) {
+                        dedupedEvents.push(singleEvent);
+                        handledEventIds.add(singleEvent.id);
+                    }
                 }
             }
         }
         filteredEvents = dedupedEvents;
     }
 
-    // 3. Normalize locations
     const eventsWithValidLocations = filteredEvents.map(event => {
         const locationIsValid = event.location && allRoomIds.has(event.location);
         if (!locationIsValid && event.location) {
@@ -289,3 +304,5 @@ export function TimelineContainer(props: TimelineContainerProps) {
         </Suspense>
     )
 }
+
+    

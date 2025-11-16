@@ -220,3 +220,5 @@ export function EventDetail({ id }: EventDetailProps) {
     </div>
   );
 }
+
+    
