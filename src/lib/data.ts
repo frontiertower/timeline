@@ -4,7 +4,7 @@ import { rooms } from './rooms';
 import { events as mockEvents } from './events';
 import * as ical from 'node-ical';
 
-const LUMA_URL = 'https://lu.ma/public-calendar/cal-T5K2sHmT9p2p78p/events';
+const LUMA_URL = 'https://api2.luma.com/ics/get?entity=calendar&id=cal-Sl7q1nHTRXQzjP2';
 const FRONTIER_TOWER_API_URL = 'https://api.berlinhouse.com/events/';
 
 const COLORS: Record<EventSource, string> = {
