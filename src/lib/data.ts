@@ -4,7 +4,7 @@ import { rooms } from './rooms';
 import { events as mockEvents } from './events';
 import * as ical from 'node-ical';
 
-const LUMA_URL = 'https://lu.ma/public-calendar/cal-eE1r2W133s8xT9p/events';
+const LUMA_URL = 'https://lu.ma/public-calendar/cal-T5K2sHmT9p2p78p/events';
 const FRONTIER_TOWER_API_URL = 'https://api.berlinhouse.com/events/';
 
 const COLORS: Record<EventSource, string> = {
@@ -245,3 +245,5 @@ export async function getEvents(): Promise<Event[]> {
 
   return cachedEvents;
 }
+
+    
