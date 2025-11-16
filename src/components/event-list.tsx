@@ -13,6 +13,7 @@ import Link from 'next/link';
 import { Calendar, Clock, MapPin, Grid } from 'lucide-react';
 import { FrontierTowerLogo } from './icons';
 import { cn } from '@/lib/utils';
+import { Switch } from '@/components/ui/switch';
 
 interface EventListContainerProps {
   initialRooms: Room;
@@ -30,6 +31,7 @@ const getLocationUrl = (id: string) => {
 function EventListContainerComponent({ initialRooms, initialEvents }: EventListContainerProps) {
   const searchParams = useSearchParams();
   const [visibleSources, setVisibleSources] = useState<EventSource[]>(['frontier-tower', 'luma', 'mock']);
+  const [showPastEvents, setShowPastEvents] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -148,6 +150,10 @@ function EventListContainerComponent({ initialRooms, initialEvents }: EventListC
     }
     
     return filteredEvents
+        .filter(event => {
+            if (showPastEvents) return true;
+            return !isBefore(parseISO(event.endsAt), new Date());
+        })
         .map(event => {
             const locationIsValid = event.location && allRoomIds.has(event.location);
             return {
@@ -156,7 +162,7 @@ function EventListContainerComponent({ initialRooms, initialEvents }: EventListC
             }
         })
         .sort((a,b) => compareAsc(parseISO(a.startsAt), parseISO(b.startsAt)));
-  }, [initialEvents, visibleSources, allRoomIds]);
+  }, [initialEvents, visibleSources, allRoomIds, showPastEvents]);
 
   const handleSourceChange = (source: EventSource, checked: boolean) => {
     const newSources = checked
@@ -193,6 +199,10 @@ function EventListContainerComponent({ initialRooms, initialEvents }: EventListC
                 <div className="flex items-center space-x-2">
                     <Checkbox id="luma-checkbox" checked={visibleSources.includes('luma')} onCheckedChange={(checked) => handleSourceChange('luma', !!checked)} style={{'--checkbox-color': 'hsl(0 100% 60%)'} as React.CSSProperties}/>
                     <Label htmlFor="luma-checkbox">Luma</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                    <Switch id="show-past-checkbox" checked={showPastEvents} onCheckedChange={setShowPastEvents} />
+                    <Label htmlFor="show-past-checkbox">Show Past</Label>
                 </div>
             </div>
              <Button asChild variant="outline" size="icon" title="Timeline View">

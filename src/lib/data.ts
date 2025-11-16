@@ -20,15 +20,17 @@ const CACHE_DURATION_MS = 10 * 60 * 1000; // 10m
 
 const locationNameMapping: Record<string, string> = {
     // Luma variations first
-    "2121 larimer st, denver, co 80205, usa": "frontier-tower",
-    "466 eddy st, san francisco, ca 94109, usa": "frontier-tower",
     "995 market st, san francisco, ca 94103, usa": "frontier-tower",
     "995 market st, san francisco, california": "frontier-tower",
     "995 market street, sf @ spaceship / floor 2": "f2r1",
     "berlinhouse, 995 market st, san francisco, ca 94103, usa": "frontier-tower",
     "flourishing (floor 14) @ frontier tower, 995 market street, san francisco": "floor-14",
+    "frontier tower @ 11th floor annex 995 market street, san francisco": "f11r1",
+    "frontier tower @ 14th floor community kitchen 995 market street, san francisco": "floor-14",
+    "frontier tower @ 16th floor coffee meetup 995 market street, san francisco": "floor-16",
     "frontier tower @ artificial intelligence 995 market street, san francisco": "floor-9",
     "frontier tower @ arts & music 995 market street, san francisco": "floor-6",
+    "frontier tower @ arts and music floor 995 market street, san francisco": "floor-6",
     "frontier tower @ berlinhouse builders 995 market street, san francisco": "frontier-tower",
     "frontier tower @ biotech 995 market street, san francisco": "floor-8",
     "frontier tower @ blue room": "f15r2",
@@ -37,21 +39,26 @@ const locationNameMapping: Record<string, string> = {
     "frontier tower @ ethereum house 995 market street, san francisco": "floor-12",
     "frontier tower @ floor 16 lounge | berlinhouse, 995 market street, san francisco": "f16r1",
     "frontier tower @ floor14 995 market street, san francisco": "floor-14",
+    "frontier tower @ floors 9, 10, 11 - annex 995 market street, san francisco": "frontier-tower",
     "frontier tower @ frontier maker space 995 market street, san francisco": "floor-7",
     "frontier tower @ frontier makerspace / floor 7 995 market street, san francisco": "floor-7",
+    "frontier tower @ frontier tower fallback location 995 market street, san francisco": "frontier-tower",
     "frontier tower @ hard tech & robotics 995 market street, san francisco": "floor-4",
     "frontier tower @ human flourishing 995 market street, san francisco": "floor-14",
     "frontier tower @ human flourishing floor 995 market street, san francisco": "floor-14",
     "frontier tower @ longevity / floor 11 995 market street, san francisco": "floor-11",
+    "frontier tower @ longevity / floor 11, 995 market street, san francisco": "floor-11",
     "frontier tower @ longevity & health 995 market street, san francisco": "frontier-tower",
     "frontier tower @ lounge / floor 14 995 market street, san francisco": "f14r1",
     "frontier tower @ lounge / floor 16 995 market street, san francisco": "f16r1",
     "frontier tower @ lounge / floor 16 995 market street, sf": "f16r1",
+    "frontier tower @ lounge 995 market street, san francisco": "floor-16",
     "frontier tower @ makerspace / floor 7 995 market street, san francisco": "floor-7",
     "frontier tower @ rooftop 995 market street, san francisco": "floor-17",
     "frontier tower @ spaceship / floor 2 995 market street, san francisco": "f2r1",
     "frontier tower @floor 14 995 market street, san francisco": "floor-14",
     "frontier tower @floor 7 995 market street, san francisco": "floor-7",
+    "frontier tower @floor12 995 market street, san francisco": "floor-12",
     "frontier tower @floor14 995 market street, san francisco": "floor-14",
     "frontier tower @rooftop 995 market street, san francisco": "floor-17",
     "frontier tower / floor 2 995 market street, san francisco": "floor-2",
@@ -69,16 +76,35 @@ const locationNameMapping: Record<string, string> = {
     "hard tech & robotics @ 995 market street, san francisco": "floor-4",
     "berlinhouse builders @ 995 market street, san francisco": "floor-16",
 
+    // Non FT locations
+    "2121 larimer st, denver, co 80205, usa": "frontier-tower",
+    "466 eddy st, san francisco, ca 94109, usa": "frontier-tower",
+    "55 2nd st 5th floor, san francisco, ca 94105, usa": "frontier-tower",
+    "canopy jackson square, 595 pacific ave 4th floor, san francisco, ca 94133, usa": "frontier-tower",
+    "club joyful, 2121 lincoln blvd, venice, ca 90291, usa": "frontier-tower",
+    "dovetail, 660 market st, san francisco, ca 94104, usa": "frontier-tower",
+    "first presbyterian church of oakland, 2619 broadway, oakland, ca 94612, usa": "frontier-tower",
+    "fort mason, san francisco, ca 94109, usa": "frontier-tower",
+    "hero city, 55 e 3rd ave, san mateo, ca 94401, usa": "frontier-tower",
+    "modernist, 139 steuart st, san francisco, ca 94105, usa": "frontier-tower",
+    "santa clara convention center, 5001 great america pkwy, santa clara, ca 95054, usa": "frontier-tower",
+    "steep ravine, rocky point rd, stinson beach, ca 94970, usa": "frontier-tower",
+    "temple nightclub san francisco, 540 howard st, san francisco, ca 94105, usa": "frontier-tower",
+    "the clancy, autograph collection, 299 2nd st, san francisco, ca 94105, usa": "frontier-tower",
+
     // frontier tower api exact matches
     "11th-floor-annex": "f11r1",
+    "14th-kitchen": "floor-14",
     "15th-blue-room": "f15r2",
     "16th-coffee-meetup": "f16r2",
     "9th-floor-annex": "f9r1",
+    "arts-music-default": "floor-6",
     "basement": "floor-0",
     "blue_room": "f15r2",
     "floor 7 - makerspace": "floor-7",
     "floor_16": "floor-16",
     "floor_2": "floor-2",
+    "frontier-fallback": "frontier-tower",
     "human-flourishing-default": "floor-14",
     "rooftop-lounge": "f16r1",
     "spaceship": "f2r1",
@@ -111,7 +137,7 @@ function normalizeLocation(location: string | null | undefined, name: string | n
     }
 
     if (location.indexOf('luma') === -1) {
-       console.warn(`No exact match found for location: ${location}, name: ${name}, displayLocation: ${displayLocation}`)
+       console.warn(`No exact match found for location: "${location}", name: "${name}", displayLocation: "${displayLocation}"`)
     }
     return 'frontier-tower'; // Default if no match is found
 }
