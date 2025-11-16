@@ -4,7 +4,7 @@ import { rooms } from './rooms';
 import { events as mockEvents } from './events';
 import * as ical from 'node-ical';
 
-const LUMA_URL = 'https://api.lu.ma/ics/get?entity=calendar&id=cal-Sl7q1nHTRXQzjP2';
+const LUMA_URL = 'https://lu.ma/public-calendar/cal-eE1r2W133s8xT9p/events';
 const FRONTIER_TOWER_API_URL = 'https://api.berlinhouse.com/events/';
 
 const COLORS: Record<EventSource, string> = {
@@ -41,6 +41,7 @@ const locationNameMapping: Record<string, string> = {
     "frontier tower @ frontier makerspace / floor 7 995 market street, san francisco": "floor-7",
     "frontier tower @ hard tech & robotics 995 market street, san francisco": "floor-4",
     "frontier tower @ human flourishing 995 market street, san francisco": "floor-14",
+    "frontier tower @ human flourishing floor 995 market street, san francisco": "floor-14",
     "frontier tower @ longevity / floor 11 995 market street, san francisco": "floor-11",
     "frontier tower @ longevity & health 995 market street, san francisco": "frontier-tower",
     "frontier tower @ lounge / floor 14 995 market street, san francisco": "f14r1",
@@ -131,7 +132,7 @@ async function fetchFrontierTowerEvents(): Promise<Event[]> {
 
     while (nextUrl && pageCount < maxPages) {
       pageCount++;
-      const response = await fetch(nextUrl + `#${Date.now()}`, {
+      const response = await fetch(nextUrl, {
         headers: {
           'X-API-Key': `${process.env.FRONTIER_TOWER_API_KEY}`,
           'Accept': 'application/json',
