@@ -85,41 +85,44 @@ function EventListContainerComponent({ initialRooms, initialEvents }: EventListC
 
         const dedupedEvents: Event[] = [];
         for (const eventGroup of eventsByName.values()) {
-            const handledEventIds = new Set<string>();
+            if (eventGroup.length <= 1) {
+                dedupedEvents.push(...eventGroup);
+                continue;
+            }
 
-            for (let i = 0; i < eventGroup.length; i++) {
-                const eventA = eventGroup[i];
+            const handledEventIds = new Set<string>();
+            for (const eventA of eventGroup) {
                 if (handledEventIds.has(eventA.id)) continue;
 
-                let mergedEvent: Event | null = null;
-
-                for (let j = i + 1; j < eventGroup.length; j++) {
-                    const eventB = eventGroup[j];
-                    if (handledEventIds.has(eventB.id)) continue;
+                const similarEvents = [eventA];
+                for (const eventB of eventGroup) {
+                    if (eventA.id === eventB.id || handledEventIds.has(eventB.id)) continue;
 
                     const timeDiff = Math.abs(differenceInMinutes(parseISO(eventA.startsAt), parseISO(eventB.startsAt)));
-
-                    if (timeDiff <= 5 && eventA.source !== eventB.source && (eventA.source === 'frontier-tower' || eventB.source === 'frontier-tower')) {
-                        const ftEvent = eventA.source === 'frontier-tower' ? eventA : eventB;
-                        const lumaEvent = eventA.source === 'luma' ? eventA : eventB;
-
-                        mergedEvent = { ...ftEvent };
-                        mergedEvent.id = `${ftEvent.id},${lumaEvent.id}`;
-                        
-                        if ((!ftEvent.location || ftEvent.location === 'frontier-tower') && lumaEvent.location && lumaEvent.location !== 'frontier-tower') {
-                          mergedEvent.location = lumaEvent.location;
-                        }
-
-                        handledEventIds.add(eventA.id);
-                        handledEventIds.add(eventB.id);
-                        break; 
+                    if (timeDiff <= 5) {
+                        similarEvents.push(eventB);
                     }
                 }
 
-                if (mergedEvent) {
+                if (similarEvents.length > 1) {
+                    const ftEvent = similarEvents.find(e => e.source === 'frontier-tower');
+                    const baseEvent = ftEvent || similarEvents[0];
+                    
+                    const mergedEvent: Event = { ...baseEvent };
+                    mergedEvent.id = similarEvents.map(e => e.id).join(',');
+                    
+                    const lumaEvents = similarEvents.filter(e => e.source === 'luma');
+                    const mostSpecificLuma = lumaEvents.find(e => e.location && e.location !== 'frontier-tower');
+
+                    if (mostSpecificLuma && (!baseEvent.location || baseEvent.location === 'frontier-tower')) {
+                      mergedEvent.location = mostSpecificLuma.location;
+                    }
+                    
                     dedupedEvents.push(mergedEvent);
-                } else if (!handledEventIds.has(eventA.id)) {
+                    similarEvents.forEach(e => handledEventIds.add(e.id));
+                } else {
                     dedupedEvents.push(eventA);
+                    handledEventIds.add(eventA.id);
                 }
             }
         }

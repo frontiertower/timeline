@@ -61,18 +61,18 @@ const locationNameMapping: Record<string, string> = {
     "frontier tower floor 14 995 market street, san francisco": "floor-14",
 
     // frontier tower api exact matches
-    "basement": "floor-0",
-    "floor_2": "floor-2",
-    "floor 7 - makerspace": "floor-7",
-    "floor_16": "floor-16",
-    "human-flourishing-default": "floor-14",
-    "blue_room": "f15r2",
-    "15th-blue-room": "f15r2",
     "11th-floor-annex": "f11r1",
+    "15th-blue-room": "f15r2",
     "16th-coffee-meetup": "f16r2",
     "9th-floor-annex": "f9r1",
+    "basement": "floor-0",
+    "blue_room": "f15r2",
+    "floor 7 - makerspace": "floor-7",
+    "floor_16": "floor-16",
+    "floor_2": "floor-2",
+    "human-flourishing-default": "floor-14",
+    "rooftop-lounge": "f16r1",
     "spaceship": "f2r1",
-    "rooftop-lounge": "floor-17",
 
     // displayLocation matches for location == 'my_community'
     "artificial intelligence @ 995 market street, san francisco": "floor-9",

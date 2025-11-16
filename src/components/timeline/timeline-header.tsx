@@ -74,11 +74,9 @@ export function TimelineHeader({
         <div>
           <h1 className="text-2xl font-headline text-foreground">Frontier Tower Timeline</h1>
           <p className="text-sm text-muted-foreground">
-            (
-            <Link href="https://ft0.sh/timeline" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-              ft0.sh/timeline
+            <Link href={`https://ft0.sh/timeline${new URL(window.location.href).search}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+              <b>ft0.sh/timeline</b>{new URL(window.location.href).search}
             </Link>
-            )
           </p>
         </div>
       </div>
