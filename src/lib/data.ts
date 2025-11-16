@@ -60,6 +60,14 @@ const locationNameMapping: Record<string, string> = {
     "frontier tower | berlinhouse, 995 market st, san francisco, ca 94103, usa": "frontier-tower",
     "frontier tower 🧑‍🚀, 995 market st, san francisco, ca 94103, usa": "frontier-tower",
     "frontier tower floor 14 995 market street, san francisco": "floor-14",
+    "human flourishing @ 995 market street, san francisco": "floor-14",
+    "longevity & health @ 995 market street, san francisco": "floor-11",
+    "ethereum house @ 995 market street, san francisco": "floor-12",
+    "artificial intelligence @ 995 market street, san francisco": "floor-9",
+    "biotech @ 995 market street, san francisco": "floor-8",
+    "frontier maker space @ 995 market street, san francisco": "floor-7",
+    "hard tech & robotics @ 995 market street, san francisco": "floor-4",
+    "berlinhouse builders @ 995 market street, san francisco": "floor-16",
 
     // frontier tower api exact matches
     "11th-floor-annex": "f11r1",
@@ -74,16 +82,6 @@ const locationNameMapping: Record<string, string> = {
     "human-flourishing-default": "floor-14",
     "rooftop-lounge": "f16r1",
     "spaceship": "f2r1",
-
-    // displayLocation matches for location == 'my_community'
-    "artificial intelligence @ 995 market street, san francisco": "floor-9",
-    "berlinhouse builders @ 995 market street, san francisco": "floor-16",
-    "biotech @ 995 market street, san francisco": "floor-8",
-    "ethereum house @ 995 market street, san francisco": "floor-12",
-    "frontier maker space @ 995 market street, san francisco": "floor-7",
-    "hard tech & robotics @ 995 market street, san francisco": "floor-4",
-    "human flourishing @ 995 market street, san francisco": "floor-14",
-    "longevity & health @ 995 market street, san francisco": "floor-11",
 };
 
 function normalizeLocation(location: string | null | undefined, name: string | null | undefined, displayLocation: string | null | undefined, ): string {
@@ -246,4 +244,3 @@ export async function getEvents(): Promise<Event[]> {
   return cachedEvents;
 }
 
-    
