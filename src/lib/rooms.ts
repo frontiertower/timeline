@@ -7,46 +7,49 @@ export const rooms: Room = {
   parentId: null,
   children: [
     {
-      id: 'floor-0',
+      id: 'f0',
       name: '0 - Basement',
       type: 'floor',
       parentId: 'frontier-tower',
       children: [
-        { id: 'f0r1', name: 'Robot Arena', type: 'room', parentId: 'floor-0' },
-        { id: 'f0r2', name: 'Storage A', type: 'room', parentId: 'floor-0' },
-        { id: 'f0r3', name: 'Garage', type: 'room', parentId: 'floor-0' },
+        { id: 'f0r1', name: 'Robot Arena', type: 'room', parentId: 'f0' },
+        { id: 'f0r2', name: 'Storage A', type: 'room', parentId: 'f0' },
+        { id: 'f0r3', name: 'Garage', type: 'room', parentId: 'f0' },
       ],
     },
     {
-      id: 'floor-1',
+      id: 'f1',
       name: '1 - Lobby',
       type: 'floor',
       parentId: 'frontier-tower',
       children: [
-        { id: 'f1r1', name: 'Lobby', type: 'room', parentId: 'floor-1' },
+        { id: 'f1r1', name: 'Lobby', type: 'room', parentId: 'f1' },
       ],
     },
     {
-      id: 'floor-2',
+      id: 'f2',
       name: '2 - Events',
       type: 'floor',
       parentId: 'frontier-tower',
       children: [
-        { id: 'f2r1', name: 'Spaceship', type: 'room', parentId: 'floor-2' },
-        { id: 'f2r2', name: 'VIP Room', type: 'room', parentId: 'floor-2' },
+        { id: 'spaceship', name: 'Spaceship', type: 'room', parentId: 'f2' },
+        { id: '2nd-floor-conference-a', name: 'Conference Room A', type: 'room', parentId: 'f2' },
+        { id: '2nd-floor-conference-b', name: 'Conference Room B', type: 'room', parentId: 'f2' },
+        { id: '2nd-floor-conference-c', name: 'Conference Room C', type: 'room', parentId: 'f2' },
+        { id: '2nd-floor-conference-d', name: 'Conference Room D', type: 'room', parentId: 'f2' },
       ],
     },
     {
-        id: 'floor-3',
+        id: 'f3',
         name: '3 - Offices',
         type: 'floor',
         parentId: 'frontier-tower',
         children: [
-            { id: 'f3r1', name: 'Offices Bar', type: 'room', parentId: 'floor-3' },
+            { id: 'f3r1', name: 'Offices Bar', type: 'room', parentId: 'f3' },
         ]
     },
     {
-        id: 'floor-4',
+        id: 'f4',
         name: '4 - Robotics & Hard Tech',
         type: 'floor',
         parentId: 'frontier-tower',
@@ -54,7 +57,7 @@ export const rooms: Room = {
         ]
     },
     {
-        id: 'floor-6',
+        id: 'f6',
         name: '6 - Arts & Music',
         type: 'floor',
         parentId: 'frontier-tower',
@@ -62,7 +65,7 @@ export const rooms: Room = {
         ]
     },
     {
-        id: 'floor-7',
+        id: 'f7',
         name: '7 - Makerspace',
         type: 'floor',
         parentId: 'frontier-tower',
@@ -70,7 +73,7 @@ export const rooms: Room = {
         ]
     },
     {
-        id: 'floor-8',
+        id: 'f8',
         name: '8 - Biotech',
         type: 'floor',
         parentId: 'frontier-tower',
@@ -78,25 +81,33 @@ export const rooms: Room = {
         ]
     },
     {
-        id: 'floor-9',
+        id: 'f9',
         name: '9 - AI & Autonomous Systems',
         type: 'floor',
         parentId: 'frontier-tower',
         children: [
-          { id: 'f9r1', name: '9th Floor Annex', type: 'room', parentId: 'floor-11' },
+          { id: 'f9-annex', name: '9th Floor Annex', type: 'room', parentId: 'f9' },
         ]
     },
     {
-        id: 'floor-11',
+        id: 'f10',
+        name: '10 - Accelerate',
+        type: 'floor',
+        parentId: 'frontier-tower',
+        children: [
+        ]
+    },
+    {
+        id: 'f11',
         name: '11 - Longevity & Health',
         type: 'floor',
         parentId: 'frontier-tower',
         children: [
-          { id: 'f11r1', name: '11th Floor Annex', type: 'room', parentId: 'floor-11' },
+          { id: 'f11r1', name: '11th Floor Annex', type: 'room', parentId: 'f11' },
         ]
     },
     {
-        id: 'floor-12',
+        id: 'f12',
         name: '12 - Ethereum House',
         type: 'floor',
         parentId: 'frontier-tower',
@@ -104,45 +115,46 @@ export const rooms: Room = {
         ]
     },
     {
-        id: 'floor-14',
+        id: 'f14',
         name: '14 - Human Flourishing',
         type: 'floor',
         parentId: 'frontier-tower',
         children: [
-          { id: 'f14r1', name: 'Lounge', type: 'room', parentId: 'floor-14' },
+          { id: '14th-kitchen', name: 'Kitchen', type: 'room', parentId: 'f14' },
+          { id: '14th-salon', name: 'Salon', type: 'room', parentId: 'f14' },
         ]
     },
     {
-        id: 'floor-15',
+        id: 'f15',
         name: '15 - Coworking',
         type: 'floor',
         parentId: 'frontier-tower',
         children: [
-            { id: 'f15r1', name: 'Deep Work Space', type: 'room', parentId: 'floor-15' },
-            { id: 'f15r2', name: 'Blue Room', type: 'room', parentId: 'floor-15' },
+            { id: '15th-deep-work-space', name: 'Deep Work Space', type: 'room', parentId: 'f15' },
+            { id: '15th-blue-room', name: 'Blue Room', type: 'room', parentId: 'f15' },
         ]
     },
     {
-        id: 'floor-16',
+        id: 'f16',
         name: '16 - d/acc',
         type: 'floor',
         parentId: 'frontier-tower',
         children: [
-          { id: 'f16r1', name: 'Lounge', type: 'room', parentId: 'floor-16' },
-          { id: 'f16r2', name: 'Coffee Meetup', type: 'room', parentId: 'floor-16' },
-          { id: 'f16r3', name: 'Lounge', type: 'room', parentId: 'floor-16' },
-          { id: 'f16r4', name: 'Dining Room', type: 'room', parentId: 'floor-16' },
-          { id: 'f16r5', name: 'Cinema Room', type: 'room', parentId: 'floor-16' },
+          { id: 'rooftop-lounge', name: 'Lounge', type: 'room', parentId: 'f16' },
+          { id: '16th-coffee-meetup', name: 'Coffee Meetup', type: 'room', parentId: 'f16' },
+          { id: '16th-breakout-l', name: 'Left Breakout', type: 'room', parentId: 'f16' },
+          { id: '16th-breakout-r', name: 'Right Breakout', type: 'room', parentId: 'f16' },
+          { id: '16th-corner-lobby', name: 'Corner Lobby', type: 'room', parentId: 'f16' },
         ]
     },
     {
-        id: 'floor-17',
+        id: 'f17',
         name: '17 - Rooftop',
         type: 'floor',
         parentId: 'frontier-tower',
         children: [
-          { id: 'f17r1', name: 'BBQ', type: 'room', parentId: 'floor-17' },
-          { id: 'f17r2', name: 'Rave', type: 'room', parentId: 'floor-17' },
+          { id: 'f17r1', name: 'BBQ', type: 'room', parentId: 'f17' },
+          { id: 'f17r2', name: 'Rave', type: 'room', parentId: 'f17' },
         ]
     }
   ],
