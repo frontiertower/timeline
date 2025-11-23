@@ -25,21 +25,40 @@ export function EventItem({ event, group = [] }: EventItemProps) {
   const isPast = isBefore(eventEnd, new Date());
 
   let cardStyle: React.CSSProperties = {};
+  let borderColorClass = '';
+
+  const allEvents = isGroup ? group : [event];
+  const hasLuma = allEvents.some(e => e.source === 'luma');
+  const hasFT = allEvents.some(e => e.source === 'frontier-tower');
   
   if (isPast) {
     cardStyle = {
         backgroundColor: 'hsl(var(--muted))',
         color: 'hsl(var(--muted-foreground))',
     };
+  } else if (hasLuma && hasFT) {
+    cardStyle = {
+      backgroundColor: 'hsl(259 80% 70%)', // purple
+      color: 'hsl(var(--primary-foreground))',
+    };
+    borderColorClass = 'border-l-4 border-black';
+  } else if (hasFT) { // Just FT, or group of only FT
+     cardStyle = {
+        backgroundColor: 'hsl(259 80% 70%)', // purple
+        color: 'hsl(var(--primary-foreground))',
+    };
+    borderColorClass = 'border-l-4 border-red-500';
   } else if (isGroup) {
+    // Group of non-FT events, e.g. multiple Luma
     cardStyle = {
       backgroundColor: 'hsl(var(--muted))',
       color: 'hsl(var(--muted-foreground))',
       border: '1px dashed hsl(var(--border))',
     };
-  } else {
+  }
+  else {
      cardStyle = {
-        backgroundColor: event.color,
+        backgroundColor: event.color, // Luma will be red
         color: 'hsl(var(--primary-foreground))',
     };
   }
@@ -80,7 +99,8 @@ export function EventItem({ event, group = [] }: EventItemProps) {
             <Card 
               className={cn(
                   "h-full w-full hover:opacity-80 transition-opacity duration-200 shadow-md overflow-hidden",
-                  isPast && "grayscale opacity-70"
+                  isPast && "grayscale opacity-70",
+                  borderColorClass
               )}
               style={cardStyle}
             >

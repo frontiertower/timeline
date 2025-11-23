@@ -95,7 +95,7 @@ function SingleEventCard({ event, room }: { event: Event; room: Room | null }) {
           ) : (
             <a href={locationUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:underline" title={locationName}>
               <MapPin className="h-4 w-4 text-accent"/>
-              {locationName}
+              {room ? (room.parentId ? `${room.parentId?.toLocaleUpperCase()} - ${room.name}` : room.name) : 'Unknown Location'}
             </a>
           )}
           <span className="flex items-center gap-2">
